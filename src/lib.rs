@@ -1,5 +1,6 @@
 extern crate libc;
 
+#[link(name = "c")]
 extern {
     fn posix_openpt(flags: libc::c_int) -> libc::c_int;
     fn grantpt(fd: libc::c_int) -> libc::c_int;
