@@ -1,41 +1,56 @@
 extern crate libc;
 
-#[link(name = "c")]
-extern {
-    fn posix_openpt(flags: libc::c_int) -> libc::c_int;
-    fn grantpt(fd: libc::c_int) -> libc::c_int;
-    fn unlockpt(fd: libc::c_int) -> libc::c_int;
-    fn ptsname(fd: libc::c_int) -> *mut libc::c_schar;
+use std::io;
+
+mod ffi;
+
+macro_rules! unsafe_try {
+    ( $x:expr ) => {
+        try!(int_result(unsafe { $x }))
+    };
 }
 
-pub fn fork() -> (libc::pid_t, libc::c_int)
+pub fn fork() -> io::Result<(libc::pid_t, libc::c_int)>
 {
-    let pty_master = unsafe { posix_openpt(libc::O_RDWR) };
+    let pty_master = unsafe_try!(ffi::posix_openpt(libc::O_RDWR));
 
-    unsafe { grantpt(pty_master) };
-    unsafe { unlockpt(pty_master) };
+    unsafe_try!(ffi::grantpt(pty_master));
+    unsafe_try!(ffi::unlockpt(pty_master));
 
-    let pts_name = unsafe { ptsname(pty_master) };
-    let pid      = unsafe { libc::fork() };
+    let pid = unsafe_try!(libc::fork());
 
     if pid == 0 {
-        unsafe { libc::setsid() };
+        let pts_name = unsafe { ffi::ptsname(pty_master) };
 
-        let pty_slave = unsafe { libc::open(pts_name, libc::O_RDWR, 0) };
+        if (pts_name as i32) == 0 {
+            return Err(io::Error::last_os_error())
+        }
 
-        unsafe { libc::close(pty_master) };
+        unsafe_try!(libc::close(pty_master));
+        unsafe_try!(libc::setsid());
 
-        unsafe { libc::dup2(pty_slave, libc::STDIN_FILENO) };
-        unsafe { libc::dup2(pty_slave, libc::STDOUT_FILENO) };
-        unsafe { libc::dup2(pty_slave, libc::STDERR_FILENO) };
+        let pty_slave = unsafe_try!(libc::open(pts_name, libc::O_RDWR, 0));
 
-        unsafe { libc::close(pty_slave) };
+        unsafe_try!(libc::dup2(pty_slave, libc::STDIN_FILENO));
+        unsafe_try!(libc::dup2(pty_slave, libc::STDOUT_FILENO));
+        unsafe_try!(libc::dup2(pty_slave, libc::STDERR_FILENO));
 
-        return (0, -1);
+        unsafe_try!(libc::close(pty_slave));
+
+        return Ok((0, -1));
     }
     else {
-        return (pid, pty_master);
+        return Ok((pid, pty_master));
     }
+}
+
+#[inline]
+fn int_result(value: libc::c_int) -> io::Result<libc::c_int> {
+    if value < 0 {
+        return Err(io::Error::last_os_error())
+    }
+
+    Ok(value)
 }
 
 #[test]
