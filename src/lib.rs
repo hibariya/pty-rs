@@ -1,16 +1,74 @@
+#![feature(zero_one)]
+
 extern crate libc;
 
 use std::io;
+use std::num::One;
+use std::ops::Neg;
 
 mod ffi;
 
 macro_rules! unsafe_try {
     ( $x:expr ) => {
-        try!(int_result(unsafe { $x }))
+        try!(to_result(unsafe { $x }))
     };
 }
 
-pub fn fork() -> io::Result<(libc::pid_t, libc::c_int)>
+pub struct Child {
+    pid: libc::pid_t
+}
+
+impl Child {
+    pub fn pid(&self) -> libc::pid_t {
+        self.pid
+    }
+
+    pub fn wait(&self) {
+        unsafe { libc::waitpid(self.pid, std::ptr::null(), 0) };
+    }
+}
+
+pub struct Master {
+    fd: libc::c_int
+}
+
+impl Master {
+    pub fn raw(&self) -> libc::c_int {
+        self.fd
+    }
+
+    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
+        let ret = unsafe_try!(
+            libc::read(self.fd,
+                       buf.as_mut_ptr() as *mut libc::c_void,
+                       buf.len() as libc::size_t)
+        );
+
+        Ok(ret as usize)
+    }
+
+    pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
+        let ret = unsafe_try!(
+            libc::write(self.fd,
+                        buf.as_ptr() as *const libc::c_void,
+                        buf.len() as libc::size_t)
+        );
+
+        Ok(ret as usize)
+    }
+
+    pub fn close(&self) {
+        unsafe { libc::close(self.fd) };
+    }
+}
+
+impl Copy for Master {}
+
+impl Clone for Master {
+    fn clone(&self) -> Master { *self }
+}
+
+pub fn fork() -> io::Result<(Child, Master)>
 {
     let pty_master = try!(open_ptm());
     let pid        = unsafe_try!(libc::fork());
@@ -18,10 +76,10 @@ pub fn fork() -> io::Result<(libc::pid_t, libc::c_int)>
     if pid == 0 {
         try!(attach_pts(pty_master));
 
-        return Ok((0, -1));
+        return Ok((Child { pid: 0 }, Master { fd: -1 }));
     }
     else {
-        return Ok((pid, pty_master));
+        return Ok((Child { pid: pid }, Master { fd: pty_master }));
     }
 }
 
@@ -56,12 +114,14 @@ fn attach_pts(pty_master: libc::c_int) -> io::Result<()> {
 }
 
 #[inline]
-fn int_result(value: libc::c_int) -> io::Result<libc::c_int> {
-    if value < 0 {
-        return Err(io::Error::last_os_error())
-    }
+fn to_result<T: One + PartialEq + Neg<Output=T>>(t: T) -> io::Result<T> {
+    let one: T = T::one();
 
-    Ok(value)
+    if t == -one {
+        Err(io::Error::last_os_error())
+    } else {
+        Ok(t)
+    }
 }
 
 #[test]
