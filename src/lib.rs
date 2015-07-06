@@ -2,7 +2,7 @@
 
 extern crate libc;
 
-use std::io;
+use std::io::{self, Read, Write};
 use std::num::One;
 use std::ops::Neg;
 
@@ -19,9 +19,7 @@ pub struct Child {
 }
 
 impl Child {
-    pub fn pid(&self) -> libc::pid_t {
-        self.pid
-    }
+    pub fn pid(&self) -> libc::pid_t { self.pid }
 
     pub fn wait(&self) {
         unsafe { libc::waitpid(self.pid, std::ptr::null(), 0) };
@@ -33,21 +31,28 @@ pub struct Master {
 }
 
 impl Master {
-    pub fn raw(&self) -> libc::c_int {
-        self.fd
-    }
+    pub fn fd(&self) -> libc::c_int { self.fd }
 
-    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
-        let ret = unsafe_try!(
+    pub fn close(&self) {
+        unsafe { libc::close(self.fd) };
+    }
+}
+
+impl Read for Master {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        match to_result(unsafe {
             libc::read(self.fd,
                        buf.as_mut_ptr() as *mut libc::c_void,
                        buf.len() as libc::size_t)
-        );
-
-        Ok(ret as usize)
+        }) {
+            Ok(nread) => Ok(nread as usize),
+            Err(_)    => Ok(0 as usize)
+        }
     }
+}
 
-    pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
+impl Write for Master {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let ret = unsafe_try!(
             libc::write(self.fd,
                         buf.as_ptr() as *const libc::c_void,
@@ -57,9 +62,7 @@ impl Master {
         Ok(ret as usize)
     }
 
-    pub fn close(&self) {
-        unsafe { libc::close(self.fd) };
-    }
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
 impl Copy for Master {}
@@ -76,10 +79,10 @@ pub fn fork() -> io::Result<(Child, Master)>
     if pid == 0 {
         try!(attach_pts(pty_master));
 
-        return Ok((Child { pid: 0 }, Master { fd: -1 }));
+        Ok((Child { pid: pid }, Master { fd: -1 }))
     }
     else {
-        return Ok((Child { pid: pid }, Master { fd: pty_master }));
+        Ok((Child { pid: pid }, Master { fd: pty_master }))
     }
 }
 
@@ -95,7 +98,7 @@ fn open_ptm() -> io::Result<libc::c_int> {
 fn attach_pts(pty_master: libc::c_int) -> io::Result<()> {
     let pts_name = unsafe { ffi::ptsname(pty_master) };
 
-    if (pts_name as i32) == 0 {
+    if (pts_name as *const i32) == std::ptr::null() {
         return Err(io::Error::last_os_error())
     }
 
@@ -126,4 +129,44 @@ fn to_result<T: One + PartialEq + Neg<Output=T>>(t: T) -> io::Result<T> {
 
 #[test]
 fn it_works() {
+    use std::process::{Command, Stdio};
+    use std::string::String;
+
+    let (child, mut master) = fork().unwrap();
+
+    if child.pid() == 0 {
+        let mut ptrs: Vec<*const libc::c_char> = Vec::with_capacity(1);
+
+        ptrs.push(std::ffi::CString::new("tty").unwrap().as_ptr());
+        ptrs.push(std::ptr::null());
+
+        unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
+    }
+    else {
+        let mut string = String::new();
+
+        match master.read_to_string(&mut string) {
+            Ok(_)  => {
+                let output = Command::new("tty").stdin(Stdio::inherit()).output().unwrap().stdout;
+
+                let parent_tty = String::from_utf8_lossy(&output);
+                let child_tty  = string.trim();
+
+                assert!(child_tty != "");
+                assert!(child_tty != parent_tty);
+
+                let mut parent_tty_dir: Vec<&str> = parent_tty.split("/").collect();
+                let mut child_tty_dir:  Vec<&str> = child_tty.split("/").collect();
+
+                parent_tty_dir.pop();
+                child_tty_dir.pop();
+
+                assert_eq!(parent_tty_dir, child_tty_dir);
+            },
+            Err(e) => panic!("{}", e)
+        }
+
+        child.wait();
+        master.close();
+    }
 }

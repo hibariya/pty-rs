@@ -6,6 +6,7 @@ repository = "https://github.com/hibariya/pty-rs"
 homepage = "https://github.com/hibariya/pty-rs"
 license="MIT"
 description='Fork with new pseudo-terminal (PTY)'
+keywords = ["pty", "tty", "pseudo", "terminal", "posix"]
 
 [dependencies]
-libc='0.1'
+libc = '0.1'
