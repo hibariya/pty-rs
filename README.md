@@ -23,11 +23,11 @@ and this to your crate root:
 extern crate pty;
 ```
 
-### `pty::fork() -> io::Result<(pty::Child, pty::Master)>`
+### `pty::fork() -> io::Result<(Child, Master)>`
 
 This function returns two values. `pty::Child` represents a child process. `pty::Master` represents master of a PTY.
 
-For example, the following code spawns `tty` command by `pty::fork()`.
+For example, the following code spawns `tty(1)` command by `pty::fork()`.
 
 ```rust
 extern crate libc;
@@ -40,6 +40,7 @@ fn main()
     match pty::fork() {
         Ok((child, mut pty_master)) => {
             if child.pid() == 0 {
+                // Child process just exec `tty`
                 let mut ptrs: Vec<*const libc::c_char> = Vec::with_capacity(1);
 
                 ptrs.push(std::ffi::CString::new("tty").unwrap().as_ptr());
@@ -48,6 +49,7 @@ fn main()
                 unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
             }
             else {
+                // Read entire output via PTY master
                 let mut string = String::new();
 
                 match pty_master.read_to_string(&mut string) {
