@@ -37,7 +37,9 @@ For example, the following code spawns `tty(1)` command by `pty::fork()` and out
 extern crate libc;
 extern crate pty;
 
+use std::ffi::CString;
 use std::io::Read;
+use std::ptr;
 
 fn main()
 {
@@ -45,22 +47,17 @@ fn main()
         Ok((child_process, mut pty_master)) => {
             if child_process.pid() == 0 {
                 // Child process just exec `tty`
-                let mut ptrs: Vec<*const libc::c_char> = Vec::with_capacity(1);
-
-                ptrs.push(std::ffi::CString::new("tty").unwrap().as_ptr());
-                ptrs.push(std::ptr::null());
+                let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
 
                 unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
             }
             else {
-                // Read entire output via PTY master
-                let mut string = String::new();
+                // Read output via PTY master
+                let mut output = String::new();
 
-                match pty_master.read_to_string(&mut string) {
-                    Ok(_nread)  => {
-                        println!("child tty is: {}", string.trim());
-                    },
-                    Err(e) => panic!("read error: {}", e)
+                match pty_master.read_to_string(&mut output) {
+                    Ok(_nread)  => println!("child tty is: {}", output.trim()),
+                    Err(e)      => panic!("read error: {}", e)
                 }
 
                 child_process.wait();
