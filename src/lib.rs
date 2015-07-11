@@ -10,7 +10,7 @@ mod ffi;
 
 macro_rules! unsafe_try {
     ( $x:expr ) => {
-        try!(to_result(unsafe { $x }))
+        try!($crate::to_result(unsafe { $x }))
     };
 }
 
