@@ -132,7 +132,7 @@ mod tests {
     extern crate libc;
 
     use std::ffi::CString;
-    use std::io::Read;
+    use std::io::{Read, Write};
     use std::process::{Command, Stdio};
     use std::ptr;
     use std::string::String;
@@ -170,6 +170,36 @@ mod tests {
                 },
                 Err(e) => panic!("{}", e)
             }
+
+            child.wait();
+            master.close();
+        }
+    }
+
+    #[test]
+    fn it_can_read_write() {
+        let (child, mut master) = fork().unwrap();
+
+        if child.pid() == 0 {
+            let mut ptrs = [CString::new("bash").unwrap().as_ptr(), ptr::null()];
+
+            print!(" "); // FIXME I'm not sure but this is needed to prevent read-block.
+
+            unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
+        }
+        else {
+            let _ = master.write("echo readme!\n".to_string().as_bytes());
+
+            let mut string = String::new();
+
+            match master.read_to_string(&mut string) {
+                Ok(_)  => {
+                    assert!(string.contains("readme!"));
+                },
+                Err(e) => panic!("{}", e)
+            }
+
+            let _ = master.write("exit\n".to_string().as_bytes());
 
             child.wait();
             master.close();
