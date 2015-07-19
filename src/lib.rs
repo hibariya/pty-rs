@@ -1,10 +1,6 @@
-#![feature(zero_one)]
-
 extern crate libc;
 
 use std::io::{self, Read, Write};
-use std::num::One;
-use std::ops::Neg;
 
 mod ffi;
 
@@ -116,14 +112,24 @@ fn attach_pts(pty_master: libc::c_int) -> io::Result<()> {
     Ok(())
 }
 
-#[inline]
-fn to_result<T: One + PartialEq + Neg<Output=T>>(t: T) -> io::Result<T> {
-    let one: T = T::one();
+// XXX use <T: Neg<Output=T> + One + PartialEq> trait instead
+trait CReturnValue { fn as_c_return_value_is_error(&self) -> bool; }
 
-    if t == -one {
+macro_rules! impl_as_c_return_value_is_error {
+    () => {
+        fn as_c_return_value_is_error(&self) -> bool { *self == -1 }
+    }
+}
+
+impl CReturnValue for i32 { impl_as_c_return_value_is_error!(); }
+impl CReturnValue for i64 { impl_as_c_return_value_is_error!(); }
+
+#[inline]
+fn to_result<T: CReturnValue>(r: T) -> io::Result<T> {
+    if r.as_c_return_value_is_error() {
         Err(io::Error::last_os_error())
     } else {
-        Ok(t)
+        Ok(r)
     }
 }
 
