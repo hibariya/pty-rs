@@ -1,4 +1,4 @@
-# PTY
+# PTY [![Build Status](https://travis-ci.org/hibariya/pty-rs.svg?branch=master)](https://travis-ci.org/hibariya/pty-rs)
 
 The `pty` crate provides `pty::fork()`. That makes a parent process fork with new pseudo-terminal (PTY).
 
