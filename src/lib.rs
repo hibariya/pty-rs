@@ -22,6 +22,7 @@ impl Child {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct Master {
     fd: libc::c_int
 }
@@ -59,12 +60,6 @@ impl Write for Master {
     }
 
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
-}
-
-impl Copy for Master {}
-
-impl Clone for Master {
-    fn clone(&self) -> Master { *self }
 }
 
 pub fn fork() -> io::Result<(Child, Master)>
