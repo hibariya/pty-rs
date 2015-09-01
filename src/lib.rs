@@ -10,24 +10,37 @@ macro_rules! unsafe_try {
     };
 }
 
-pub struct Child {
-    pid: libc::pid_t
-}
-
-impl Child {
-    pub fn pid(&self) -> libc::pid_t { self.pid }
-
-    pub fn wait(&self) {
-        unsafe { libc::waitpid(self.pid, std::ptr::null(), 0) };
-    }
-}
-
 #[derive(Clone, Copy)]
-pub struct Master {
+pub struct ChildPTY {
     fd: libc::c_int
 }
 
-impl Master {
+#[derive(Clone, Copy)]
+pub struct Child {
+    pid: libc::pid_t,
+    pub pty: Option<ChildPTY>
+}
+
+impl Child {
+    pub fn pid(&self) -> libc::pid_t {
+        self.pid
+    }
+
+    pub fn wait(&self) -> i32 {
+        let mut status = 0 as libc::c_int;
+
+        unsafe { libc::waitpid(self.pid, &mut status, 0) };
+
+        match self.pty {
+            Some(child_pty) => child_pty.close(),
+            None            => ()
+        }
+
+        status as i32
+    }
+}
+
+impl ChildPTY {
     pub fn fd(&self) -> libc::c_int { self.fd }
 
     pub fn close(&self) {
@@ -35,7 +48,7 @@ impl Master {
     }
 }
 
-impl Read for Master {
+impl Read for ChildPTY {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         match to_result(unsafe {
             libc::read(self.fd,
@@ -48,7 +61,7 @@ impl Read for Master {
     }
 }
 
-impl Write for Master {
+impl Write for ChildPTY {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let ret = unsafe_try!(
             libc::write(self.fd,
@@ -62,7 +75,7 @@ impl Write for Master {
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
-pub fn fork() -> io::Result<(Child, Master)>
+pub fn fork() -> io::Result<Child>
 {
     let pty_master = try!(open_ptm());
     let pid        = unsafe_try!(libc::fork());
@@ -70,10 +83,10 @@ pub fn fork() -> io::Result<(Child, Master)>
     if pid == 0 {
         try!(attach_pts(pty_master));
 
-        Ok((Child { pid: pid }, Master { fd: -1 }))
+        Ok(Child { pid: pid, pty: None })
     }
     else {
-        Ok((Child { pid: pid }, Master { fd: pty_master }))
+        Ok(Child { pid: pid, pty: Some(ChildPTY { fd: pty_master }) })
     }
 }
 
@@ -141,7 +154,7 @@ mod tests {
 
     #[test]
     fn it_fork_with_new_pty() {
-        let (child, mut master) = fork().unwrap();
+        let child = fork().unwrap();
 
         if child.pid() == 0 {
             let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
@@ -149,9 +162,10 @@ mod tests {
             unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
         }
         else {
+            let mut pty = child.pty.unwrap();
             let mut string = String::new();
 
-            match master.read_to_string(&mut string) {
+            match pty.read_to_string(&mut string) {
                 Ok(_)  => {
                     let output = Command::new("tty").stdin(Stdio::inherit()).output().unwrap().stdout;
 
@@ -173,13 +187,12 @@ mod tests {
             }
 
             child.wait();
-            master.close();
         }
     }
 
     #[test]
     fn it_can_read_write() {
-        let (child, mut master) = fork().unwrap();
+        let child = fork().unwrap();
 
         if child.pid() == 0 {
             let mut ptrs = [CString::new("bash").unwrap().as_ptr(), ptr::null()];
@@ -189,21 +202,21 @@ mod tests {
             unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
         }
         else {
-            let _ = master.write("echo readme!\n".to_string().as_bytes());
+            let mut pty = child.pty.unwrap();
+            let _       = pty.write("echo readme!\n".to_string().as_bytes());
 
             let mut string = String::new();
 
-            match master.read_to_string(&mut string) {
+            match pty.read_to_string(&mut string) {
                 Ok(_)  => {
                     assert!(string.contains("readme!"));
                 },
                 Err(e) => panic!("{}", e)
             }
 
-            let _ = master.write("exit\n".to_string().as_bytes());
+            let _ = pty.write("exit\n".to_string().as_bytes());
 
             child.wait();
-            master.close();
         }
     }
 }
