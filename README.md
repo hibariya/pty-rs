@@ -25,11 +25,18 @@ extern crate pty;
 
 ### pty::fork()
 
-This function returns `pty::Child`. It knows about the child process and its PTY.
+This function returns `pty::Child`. It represents the child process and its PTY.
 
 ```rust
-let child   = pty::fork();
-let mut pty = child.pty.unwrap();
+let mut child = pty::fork();
+
+{
+  let mut pty = child.pty.as_mut().unwrap();
+
+  // do something with pty
+}
+
+child.wait();
 ```
 
 For example, the following code spawns `tty(1)` command by `pty::fork()` and outputs the result of the command.
@@ -45,7 +52,7 @@ use std::ptr;
 fn main()
 {
     match pty::fork() {
-        Ok(child) => {
+        Ok(mut child) => {
             if child.pid() == 0 {
                 // Child process just exec `tty`
                 let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
@@ -55,15 +62,15 @@ fn main()
             else {
                 // Read output via PTY master
                 let mut output     = String::new();
-                let mut pty_master = child.pty.unwrap();
+                let mut pty_master = child.pty.as_mut().unwrap();
 
                 match pty_master.read_to_string(&mut output) {
                     Ok(_nread)  => println!("child tty is: {}", output.trim()),
                     Err(e)      => panic!("read error: {}", e)
                 }
-
-                child.wait();
             }
+
+            child.wait();
         },
         Err(e) => panic!("pty::fork error: {}", e)
     }

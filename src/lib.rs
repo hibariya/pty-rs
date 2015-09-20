@@ -10,15 +10,15 @@ macro_rules! unsafe_try {
     };
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct ChildPTY {
     fd: libc::c_int
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Child {
     pid: libc::pid_t,
-    pub pty: Option<ChildPTY>
+    pty: Option<ChildPTY>
 }
 
 impl Child {
@@ -26,14 +26,22 @@ impl Child {
         self.pid
     }
 
-    pub fn wait(&self) -> i32 {
+    pub fn pty(&self) -> Option<&ChildPTY> {
+        self.pty.as_ref()
+    }
+
+    pub fn pty_mut(&mut self) -> Option<&mut ChildPTY> {
+        self.pty.as_mut()
+    }
+
+    pub fn wait(&mut self) -> i32 {
         let mut status = 0 as libc::c_int;
 
         unsafe { libc::waitpid(self.pid, &mut status, 0) };
 
         match self.pty {
-            Some(child_pty) => child_pty.close(),
-            None            => ()
+            Some(ref pty) => pty.close(),
+            None          => unreachable!()
         }
 
         status as i32
@@ -154,7 +162,7 @@ mod tests {
 
     #[test]
     fn it_fork_with_new_pty() {
-        let child = fork().unwrap();
+        let mut child = fork().unwrap();
 
         if child.pid() == 0 {
             let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
@@ -162,7 +170,7 @@ mod tests {
             unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
         }
         else {
-            let mut pty = child.pty.unwrap();
+            let mut pty    = child.pty_mut().unwrap();
             let mut string = String::new();
 
             match pty.read_to_string(&mut string) {
@@ -185,14 +193,14 @@ mod tests {
                 },
                 Err(e) => panic!("{}", e)
             }
-
-            child.wait();
         }
+
+        child.wait();
     }
 
     #[test]
     fn it_can_read_write() {
-        let child = fork().unwrap();
+        let mut child = fork().unwrap();
 
         if child.pid() == 0 {
             let mut ptrs = [CString::new("bash").unwrap().as_ptr(), ptr::null()];
@@ -202,7 +210,7 @@ mod tests {
             unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
         }
         else {
-            let mut pty = child.pty.unwrap();
+            let mut pty = child.pty_mut().unwrap();
             let _       = pty.write("echo readme!\n".to_string().as_bytes());
 
             let mut string = String::new();
@@ -215,8 +223,8 @@ mod tests {
             }
 
             let _ = pty.write("exit\n".to_string().as_bytes());
-
-            child.wait();
         }
+
+        child.wait();
     }
 }
