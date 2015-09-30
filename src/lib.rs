@@ -27,12 +27,8 @@ impl Child {
         self.pid
     }
 
-    pub fn pty(&self) -> Option<&ChildPTY> {
-        self.pty.as_ref()
-    }
-
-    pub fn pty_mut(&mut self) -> Option<&mut ChildPTY> {
-        self.pty.as_mut()
+    pub fn pty(&self) -> Option<ChildPTY> {
+        self.pty.clone()
     }
 
     pub fn wait(&self) -> i32 {
@@ -167,7 +163,7 @@ mod tests {
 
     #[test]
     fn it_fork_with_new_pty() {
-        let mut child = fork().unwrap();
+        let child = fork().unwrap();
 
         if child.pid() == 0 {
             let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
@@ -175,7 +171,7 @@ mod tests {
             unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
         }
         else {
-            let mut pty    = child.pty_mut().unwrap();
+            let mut pty    = child.pty().unwrap();
             let mut string = String::new();
 
             match pty.read_to_string(&mut string) {
@@ -205,7 +201,7 @@ mod tests {
 
     #[test]
     fn it_can_read_write() {
-        let mut child = fork().unwrap();
+        let child = fork().unwrap();
 
         if child.pid() == 0 {
             let mut ptrs = [CString::new("bash").unwrap().as_ptr(), ptr::null()];
@@ -215,7 +211,7 @@ mod tests {
             unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
         }
         else {
-            let mut pty = child.pty_mut().unwrap();
+            let mut pty = child.pty().unwrap();
             let _       = pty.write("echo readme!\n".to_string().as_bytes());
 
             let mut string = String::new();

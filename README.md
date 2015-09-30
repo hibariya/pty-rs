@@ -40,7 +40,7 @@ use std::ptr;
 fn main()
 {
     match pty::fork() {
-        Ok(mut child) => {
+        Ok(child) => {
             if child.pid() == 0 {
                 // Child process just exec `tty`
                 let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
@@ -50,15 +50,15 @@ fn main()
             else {
                 // Read output via PTY master
                 let mut output     = String::new();
-                let mut pty_master = child.pty_mut().unwrap();
+                let mut pty_master = child.pty().unwrap();
 
                 match pty_master.read_to_string(&mut output) {
                     Ok(_nread)  => println!("child tty is: {}", output.trim()),
                     Err(e)      => panic!("read error: {}", e)
                 }
-            }
 
-            child.wait();
+                child.wait();
+            }
         },
         Err(e) => panic!("pty::fork error: {}", e)
     }
