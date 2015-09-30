@@ -31,7 +31,7 @@ This function returns `pty::Child`. It represents the child process and its PTY.
 let mut child = pty::fork();
 
 {
-  let mut pty = child.pty.as_mut().unwrap();
+  let mut pty = child.pty_mut().unwrap();
 
   // do something with pty
 }
@@ -62,7 +62,7 @@ fn main()
             else {
                 // Read output via PTY master
                 let mut output     = String::new();
-                let mut pty_master = child.pty.as_mut().unwrap();
+                let mut pty_master = child.pty_mut().unwrap();
 
                 match pty_master.read_to_string(&mut output) {
                     Ok(_nread)  => println!("child tty is: {}", output.trim()),
