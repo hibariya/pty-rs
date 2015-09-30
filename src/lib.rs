@@ -1,6 +1,7 @@
 extern crate libc;
 
 use std::io::{self, Read, Write};
+use std::os::unix::io::{AsRawFd, RawFd};
 
 mod ffi;
 
@@ -49,10 +50,14 @@ impl Child {
 }
 
 impl ChildPTY {
-    pub fn fd(&self) -> libc::c_int { self.fd }
-
     pub fn close(&self) {
-        unsafe { libc::close(self.fd) };
+        unsafe { libc::close(self.as_raw_fd()) };
+    }
+}
+
+impl AsRawFd for ChildPTY {
+    fn as_raw_fd(&self) -> RawFd {
+        self.fd
     }
 }
 
