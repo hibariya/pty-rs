@@ -35,7 +35,7 @@ impl Child {
         self.pty.as_mut()
     }
 
-    pub fn wait(&mut self) -> i32 {
+    pub fn wait(&self) -> i32 {
         let mut status = 0 as libc::c_int;
 
         unsafe { libc::waitpid(self.pid, &mut status, 0) };
