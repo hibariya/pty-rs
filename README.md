@@ -27,18 +27,6 @@ extern crate pty;
 
 This function returns `pty::Child`. It represents the child process and its PTY.
 
-```rust
-let mut child = pty::fork();
-
-{
-  let mut pty = child.pty_mut().unwrap();
-
-  // do something with pty
-}
-
-child.wait();
-```
-
 For example, the following code spawns `tty(1)` command by `pty::fork()` and outputs the result of the command.
 
 ```rust
