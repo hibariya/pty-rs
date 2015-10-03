@@ -1,5 +1,7 @@
 extern crate libc;
+extern crate nix;
 
+use nix::sys::wait;
 use std::io::{self, Read, Write};
 use std::os::unix::io::{AsRawFd, RawFd};
 
@@ -31,17 +33,24 @@ impl Child {
         self.pty.clone()
     }
 
-    pub fn wait(&self) -> i32 {
-        let mut status = 0 as libc::c_int;
+    pub fn wait(&self) -> Result<(), &str> {
+        loop {
+            let res = wait::waitpid(self.pid, None);
 
-        unsafe { libc::waitpid(self.pid, &mut status, 0) };
+            match res {
+                Ok(status) => {
+                    match status {
+                        wait::WaitStatus::StillAlive => continue,
+                        _ => {
+                            self.pty().unwrap().close();
 
-        match self.pty {
-            Some(ref pty) => pty.close(),
-            None          => unreachable!()
+                            return Ok(());
+                        }
+                    }
+                },
+                Err(e) => return Err(e.errno().desc())
+            }
         }
-
-        status as i32
     }
 }
 
@@ -196,7 +205,7 @@ mod tests {
             }
         }
 
-        child.wait();
+        let _ = child.wait();
     }
 
     #[test]
@@ -226,6 +235,6 @@ mod tests {
             let _ = pty.write("exit\n".to_string().as_bytes());
         }
 
-        child.wait();
+        let _ = child.wait();
     }
 }

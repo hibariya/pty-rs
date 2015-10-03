@@ -10,3 +10,4 @@ keywords = ["pty", "tty", "pseudo", "terminal", "posix"]
 
 [dependencies]
 libc = '0.1'
+nix = '*'
