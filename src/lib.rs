@@ -1,6 +1,7 @@
 extern crate libc;
 
 use std::io::{self, Read, Write};
+use std::os::unix::io::{AsRawFd, RawFd};
 
 mod ffi;
 
@@ -10,20 +11,24 @@ macro_rules! unsafe_try {
     };
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct ChildPTY {
     fd: libc::c_int
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct Child {
     pid: libc::pid_t,
-    pub pty: Option<ChildPTY>
+    pty: Option<ChildPTY>
 }
 
 impl Child {
     pub fn pid(&self) -> libc::pid_t {
         self.pid
+    }
+
+    pub fn pty(&self) -> Option<ChildPTY> {
+        self.pty.clone()
     }
 
     pub fn wait(&self) -> i32 {
@@ -32,8 +37,8 @@ impl Child {
         unsafe { libc::waitpid(self.pid, &mut status, 0) };
 
         match self.pty {
-            Some(child_pty) => child_pty.close(),
-            None            => ()
+            Some(ref pty) => pty.close(),
+            None          => unreachable!()
         }
 
         status as i32
@@ -41,10 +46,14 @@ impl Child {
 }
 
 impl ChildPTY {
-    pub fn fd(&self) -> libc::c_int { self.fd }
-
     pub fn close(&self) {
-        unsafe { libc::close(self.fd) };
+        unsafe { libc::close(self.as_raw_fd()) };
+    }
+}
+
+impl AsRawFd for ChildPTY {
+    fn as_raw_fd(&self) -> RawFd {
+        self.fd
     }
 }
 
@@ -162,7 +171,7 @@ mod tests {
             unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
         }
         else {
-            let mut pty = child.pty.unwrap();
+            let mut pty    = child.pty().unwrap();
             let mut string = String::new();
 
             match pty.read_to_string(&mut string) {
@@ -185,9 +194,9 @@ mod tests {
                 },
                 Err(e) => panic!("{}", e)
             }
-
-            child.wait();
         }
+
+        child.wait();
     }
 
     #[test]
@@ -202,7 +211,7 @@ mod tests {
             unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
         }
         else {
-            let mut pty = child.pty.unwrap();
+            let mut pty = child.pty().unwrap();
             let _       = pty.write("echo readme!\n".to_string().as_bytes());
 
             let mut string = String::new();
@@ -215,8 +224,8 @@ mod tests {
             }
 
             let _ = pty.write("exit\n".to_string().as_bytes());
-
-            child.wait();
         }
+
+        child.wait();
     }
 }
