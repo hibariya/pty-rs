@@ -1,11 +1,10 @@
 ### 0.1.5
 
-Remove unnecessary `Copy` trait.
-
-* API Change: [#3](https://github.com/hibariya/pty-rs/pull/3)
+* API Change: [#3 Remove unnecessary `Copy` trait](https://github.com/hibariya/pty-rs/pull/3)
   * Mark `Child#pty` as private, add public `Child#pty()`.
   * Remove `Copy` trait from `Child` and `ChildPTY`.
   * Remove `ChildPTY#fd()`, impl `AsRawFd` for `ChildPTY`.
+* Bug fix: [#4 Continue wait if it's still alive](https://github.com/hibariya/pty-rs/pull/4)
 
 ### 0.1.4
 
