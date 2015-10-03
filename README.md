@@ -57,7 +57,7 @@ fn main()
                     Err(e)      => panic!("read error: {}", e)
                 }
 
-                child.wait();
+                let _ = child.wait();
             }
         },
         Err(e) => panic!("pty::fork error: {}", e)
