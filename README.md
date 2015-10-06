@@ -43,9 +43,10 @@ fn main()
         Ok(child) => {
             if child.pid() == 0 {
                 // Child process just exec `tty`
-                let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
+                let cmd  = CString::new("tty").unwrap().as_ptr();
+                let args = [cmd, ptr::null()].as_mut_ptr();
 
-                unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
+                unsafe { libc::execvp(cmd, args) };
             }
             else {
                 // Read output via PTY master
@@ -53,14 +54,14 @@ fn main()
                 let mut pty_master = child.pty().unwrap();
 
                 match pty_master.read_to_string(&mut output) {
-                    Ok(_nread)  => println!("child tty is: {}", output.trim()),
-                    Err(e)      => panic!("read error: {}", e)
+                    Ok(_nread) => println!("child tty is: {}", output.trim()),
+                    Err(e)     => panic!("read error: {}", e)
                 }
 
                 let _ = child.wait();
             }
         },
-        Err(e) => panic!("pty::fork error: {}", e)
+        Err(e)    => panic!("pty::fork error: {}", e)
     }
 }
 ```
@@ -74,6 +75,10 @@ $ cargo run
     Running `target/debug/example`
 child tty is: /dev/pts/8
 ```
+
+## Documentation
+
+API documentation for latest version: http://hibariya.github.io/pty-rs/index.html
 
 ## Contributing
 

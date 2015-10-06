@@ -13,11 +13,13 @@ macro_rules! unsafe_try {
     };
 }
 
+/// A type representing child process' pty.
 #[derive(Clone)]
 pub struct ChildPTY {
     fd: libc::c_int
 }
 
+/// A type representing child process.
 #[derive(Clone)]
 pub struct Child {
     pid: libc::pid_t,
@@ -25,14 +27,17 @@ pub struct Child {
 }
 
 impl Child {
+    /// Returns its pid.
     pub fn pid(&self) -> libc::pid_t {
         self.pid
     }
 
+    /// Returns a copy of its pty.
     pub fn pty(&self) -> Option<ChildPTY> {
         self.pty.clone()
     }
 
+    /// Waits until it's terminated. Then closes its pty.
     pub fn wait(&self) -> Result<(), &str> {
         loop {
             let res = wait::waitpid(self.pid, None);
@@ -55,6 +60,7 @@ impl Child {
 }
 
 impl ChildPTY {
+    /// Closes own file descriptor.
     pub fn close(&self) {
         unsafe { libc::close(self.as_raw_fd()) };
     }
@@ -93,6 +99,46 @@ impl Write for ChildPTY {
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
+/// Fork with new pseudo-terminal (PTY).
+/// 
+/// # Examples
+///
+/// ```rust
+/// extern crate libc;
+/// extern crate pty;
+/// 
+/// use std::ffi::CString;
+/// use std::io::Read;
+/// use std::ptr;
+/// 
+/// fn main()
+/// {
+///     match pty::fork() {
+///         Ok(child) => {
+///             if child.pid() == 0 {
+///                 // Child process just exec `tty`
+///                 let cmd  = CString::new("tty").unwrap().as_ptr();
+///                 let args = [cmd, ptr::null()].as_mut_ptr();
+/// 
+///                 unsafe { libc::execvp(cmd, args) };
+///             }
+///             else {
+///                 // Read output via PTY master
+///                 let mut output     = String::new();
+///                 let mut pty_master = child.pty().unwrap();
+/// 
+///                 match pty_master.read_to_string(&mut output) {
+///                     Ok(_nread) => println!("child tty is: {}", output.trim()),
+///                     Err(e)     => panic!("read error: {}", e)
+///                 }
+/// 
+///                 let _ = child.wait();
+///             }
+///         },
+///         Err(e)    => panic!("pty::fork error: {}", e)
+///     }
+/// }
+/// ```
 pub fn fork() -> io::Result<Child>
 {
     let pty_master = try!(open_ptm());
