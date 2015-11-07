@@ -4,6 +4,3 @@ rust:
   - beta
   - nightly
 sudo: false
-script:
-  - cargo build --verbose --features dev
-  - cargo test --verbose
