@@ -8,16 +8,62 @@
 extern crate libc;
 extern crate nix;
 
+use nix::errno;
 use nix::sys::wait;
+use std::fmt;
 use std::io::{self, Read, Write};
 use std::os::unix::io::{AsRawFd, RawFd};
+use std::result;
 
 mod ffi;
 
 macro_rules! unsafe_try {
-    ( $x:expr ) => {
-        try!($crate::to_result(unsafe { $x }))
-    };
+    ( $x:expr ) => {{
+        let ret = unsafe { $x };
+
+        if ret < 0 {
+            return Err($crate::last_error());
+        } else {
+            ret
+        }
+    }};
+}
+
+#[derive(Debug)]
+pub enum Error {
+    Sys(i32),
+}
+
+pub type Result<T> = result::Result<T, Error>;
+
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::Sys(n) => errno::from_i32(n).desc()
+        }
+    }
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        std::error::Error::description(self).fmt(f)
+    }
+}
+
+impl From<i32> for Error {
+    fn from(n: i32) -> Error {
+        Error::Sys(n)
+    }
+}
+
+impl From<::nix::Error> for Error {
+    fn from(e: ::nix::Error) -> Error {
+        Error::Sys(e.errno() as i32)
+    }
+}
+
+pub fn last_error() -> Error {
+    Error::from(errno::errno())
 }
 
 /// A type representing child process' pty.
@@ -45,22 +91,11 @@ impl Child {
     }
 
     /// Waits until it's terminated. Then closes its pty.
-    pub fn wait(&self) -> Result<(), &str> {
+    pub fn wait(&self) -> Result<()> {
         loop {
-            let res = wait::waitpid(self.pid, None);
-
-            match res {
-                Ok(status) => {
-                    match status {
-                        wait::WaitStatus::StillAlive => continue,
-                        _ => {
-                            self.pty().unwrap().close();
-
-                            return Ok(());
-                        }
-                    }
-                }
-                Err(e) => return Err(e.errno().desc()),
+            match try!(wait::waitpid(self.pid, None)) {
+                wait::WaitStatus::StillAlive => continue,
+                _ => return self.pty().unwrap().close(),
             }
         }
     }
@@ -68,8 +103,12 @@ impl Child {
 
 impl ChildPTY {
     /// Closes own file descriptor.
-    pub fn close(&self) -> i32 {
-        unsafe { libc::close(self.as_raw_fd()) }
+    pub fn close(&self) -> Result<()> {
+        if unsafe { libc::close(self.as_raw_fd()) } < 0 {
+            Err(Error::from(errno::errno()))
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -81,24 +120,34 @@ impl AsRawFd for ChildPTY {
 
 impl Read for ChildPTY {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        match to_result(unsafe {
+        let nread = unsafe {
             libc::read(self.fd,
-                       buf.as_mut_ptr() as *mut libc::c_void,
-                       buf.len() as libc::size_t)
-        }) {
-            Ok(nread) => Ok(nread as usize),
-            Err(_) => Ok(0),
+               buf.as_mut_ptr() as *mut libc::c_void,
+               buf.len() as libc::size_t)
+        };
+
+        if nread < 0 {
+            Ok(0)
+        } else {
+            Ok(nread as usize)
         }
     }
 }
 
 impl Write for ChildPTY {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let ret = unsafe_try!(libc::write(self.fd,
-                                          buf.as_ptr() as *const libc::c_void,
-                                          buf.len() as libc::size_t));
+        let ret = unsafe {
+            libc::write(self.fd,
+                buf.as_ptr() as *const libc::c_void,
+                buf.len() as libc::size_t
+            )
+        };
 
-        Ok(ret as usize)
+        if ret < 0 {
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(ret as usize)
+        }
     }
 
     fn flush(&mut self) -> io::Result<()> {
@@ -146,7 +195,7 @@ impl Write for ChildPTY {
 ///     }
 /// }
 /// ```
-pub fn fork() -> io::Result<Child> {
+pub fn fork() -> Result<Child> {
     let pty_master = try!(open_ptm());
     let pid = unsafe_try!(libc::fork());
 
@@ -165,7 +214,7 @@ pub fn fork() -> io::Result<Child> {
     }
 }
 
-fn open_ptm() -> io::Result<libc::c_int> {
+fn open_ptm() -> Result<libc::c_int> {
     let pty_master = unsafe_try!(ffi::posix_openpt(libc::O_RDWR));
 
     unsafe_try!(ffi::grantpt(pty_master));
@@ -174,11 +223,11 @@ fn open_ptm() -> io::Result<libc::c_int> {
     Ok(pty_master)
 }
 
-fn attach_pts(pty_master: libc::c_int) -> io::Result<()> {
+fn attach_pts(pty_master: libc::c_int) -> Result<()> {
     let pts_name = unsafe { ffi::ptsname(pty_master) };
 
     if (pts_name as *const i32) == std::ptr::null() {
-        return Err(io::Error::last_os_error());
+        return Err(last_error());
     }
 
     unsafe_try!(libc::close(pty_master));
@@ -193,28 +242,6 @@ fn attach_pts(pty_master: libc::c_int) -> io::Result<()> {
     unsafe_try!(libc::close(pty_slave));
 
     Ok(())
-}
-
-// XXX use <T: Neg<Output=T> + One + PartialEq> trait instead
-trait CReturnValue {
-    fn as_c_return_value_is_error(&self) -> bool; }
-
-macro_rules! impl_as_c_return_value_is_error {
-    () => {
-        fn as_c_return_value_is_error(&self) -> bool { *self == -1 }
-    }
-}
-
-impl CReturnValue for i32 { impl_as_c_return_value_is_error!(); }
-impl CReturnValue for i64 { impl_as_c_return_value_is_error!(); }
-
-#[inline]
-fn to_result<T: CReturnValue>(r: T) -> io::Result<T> {
-    if r.as_c_return_value_is_error() {
-        Err(io::Error::last_os_error())
-    } else {
-        Ok(r)
-    }
 }
 
 #[cfg(test)]
