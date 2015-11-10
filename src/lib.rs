@@ -39,7 +39,7 @@ pub type Result<T> = result::Result<T, Error>;
 impl std::error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::Sys(n) => errno::from_i32(n).desc()
+            Error::Sys(n) => errno::from_i32(n).desc(),
         }
     }
 }
@@ -122,8 +122,8 @@ impl Read for ChildPTY {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         let nread = unsafe {
             libc::read(self.fd,
-               buf.as_mut_ptr() as *mut libc::c_void,
-               buf.len() as libc::size_t)
+                       buf.as_mut_ptr() as *mut libc::c_void,
+                       buf.len() as libc::size_t)
         };
 
         if nread < 0 {
@@ -138,9 +138,8 @@ impl Write for ChildPTY {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         let ret = unsafe {
             libc::write(self.fd,
-                buf.as_ptr() as *const libc::c_void,
-                buf.len() as libc::size_t
-            )
+                        buf.as_ptr() as *const libc::c_void,
+                        buf.len() as libc::size_t)
         };
 
         if ret < 0 {
