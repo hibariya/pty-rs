@@ -62,7 +62,7 @@ impl From<::nix::Error> for Error {
     }
 }
 
-pub fn last_error() -> Error {
+fn last_error() -> Error {
     Error::from(errno::errno())
 }
 
