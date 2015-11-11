@@ -10,7 +10,7 @@ keywords = ['pty', 'tty', 'pseudo', 'terminal', 'fork']
 
 [dependencies]
 libc = '0.1'
-nix = '*'
+nix = '0.4'
 clippy = {version = '*', optional = true}
 
 [features]
