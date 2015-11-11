@@ -1,3 +1,7 @@
+### 0.1.6
+
+* [#5](https://github.com/hibariya/pty-rs/pull/5) Improve error representation
+
 ### 0.1.5
 
 * API Change: [#3 Remove unnecessary `Copy` trait](https://github.com/hibariya/pty-rs/pull/3)
