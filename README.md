@@ -39,29 +39,26 @@ use std::ptr;
 
 fn main()
 {
-    match pty::fork() {
-        Ok(child) => {
-            if child.pid() == 0 {
-                // Child process just exec `tty`
-                let cmd  = CString::new("tty").unwrap().as_ptr();
-                let args = [cmd, ptr::null()].as_mut_ptr();
+    let child = pty::fork().unwrap();
 
-                unsafe { libc::execvp(cmd, args) };
-            }
-            else {
-                // Read output via PTY master
-                let mut output     = String::new();
-                let mut pty_master = child.pty().unwrap();
+    if child.pid() == 0 {
+        // Child process just exec `tty`
+        let cmd  = CString::new("tty").unwrap().as_ptr();
+        let args = [cmd, ptr::null()].as_mut_ptr();
 
-                match pty_master.read_to_string(&mut output) {
-                    Ok(_nread) => println!("child tty is: {}", output.trim()),
-                    Err(e)     => panic!("read error: {}", e)
-                }
+        unsafe { libc::execvp(cmd, args) };
+    }
+    else {
+        // Read output via PTY master
+        let mut output     = String::new();
+        let mut pty_master = child.pty().unwrap();
 
-                let _ = child.wait();
-            }
-        },
-        Err(e)    => panic!("pty::fork error: {}", e)
+        match pty_master.read_to_string(&mut output) {
+            Ok(_nread) => println!("child tty is: {}", output.trim()),
+            Err(e)     => panic!("read error: {}", e)
+        }
+
+        let _ = child.wait();
     }
 }
 ```

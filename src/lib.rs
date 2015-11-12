@@ -168,29 +168,26 @@ impl Write for ChildPTY {
 ///
 /// fn main()
 /// {
-///     match pty::fork() {
-///         Ok(child) => {
-///             if child.pid() == 0 {
-///                 // Child process just exec `tty`
-///                 let cmd  = CString::new("tty").unwrap().as_ptr();
-///                 let args = [cmd, ptr::null()].as_mut_ptr();
+///     let child = pty::fork().unwrap();
 ///
-///                 unsafe { libc::execvp(cmd, args) };
-///             }
-///             else {
-///                 // Read output via PTY master
-///                 let mut output     = String::new();
-///                 let mut pty_master = child.pty().unwrap();
+///     if child.pid() == 0 {
+///         // Child process just exec `tty`
+///         let cmd  = CString::new("tty").unwrap().as_ptr();
+///         let args = [cmd, ptr::null()].as_mut_ptr();
 ///
-///                 match pty_master.read_to_string(&mut output) {
-///                     Ok(_nread) => println!("child tty is: {}", output.trim()),
-///                     Err(e)     => panic!("read error: {}", e)
-///                 }
+///         unsafe { libc::execvp(cmd, args) };
+///     }
+///     else {
+///         // Read output via PTY master
+///         let mut output     = String::new();
+///         let mut pty_master = child.pty().unwrap();
 ///
-///                 let _ = child.wait();
-///             }
-///         },
-///         Err(e)    => panic!("pty::fork error: {}", e)
+///         match pty_master.read_to_string(&mut output) {
+///             Ok(_nread) => println!("child tty is: {}", output.trim()),
+///             Err(e)     => panic!("read error: {}", e)
+///         }
+///
+///         let _ = child.wait();
 ///     }
 /// }
 /// ```
@@ -266,30 +263,27 @@ mod tests {
             let mut pty = child.pty().unwrap();
             let mut string = String::new();
 
-            match pty.read_to_string(&mut string) {
-                Ok(_) => {
-                    let output = Command::new("tty")
-                                     .stdin(Stdio::inherit())
-                                     .output()
-                                     .unwrap()
-                                     .stdout;
+            pty.read_to_string(&mut string).unwrap_or_else(|e| panic!(e));
 
-                    let parent_tty = String::from_utf8_lossy(&output);
-                    let child_tty = string.trim();
+            let output = Command::new("tty")
+                             .stdin(Stdio::inherit())
+                             .output()
+                             .unwrap()
+                             .stdout;
 
-                    assert!(child_tty != "");
-                    assert!(child_tty != parent_tty);
+            let parent_tty = String::from_utf8_lossy(&output);
+            let child_tty = string.trim();
 
-                    let mut parent_tty_dir: Vec<&str> = parent_tty.split("/").collect();
-                    let mut child_tty_dir: Vec<&str> = child_tty.split("/").collect();
+            assert!(child_tty != "");
+            assert!(child_tty != parent_tty);
 
-                    parent_tty_dir.pop();
-                    child_tty_dir.pop();
+            let mut parent_tty_dir: Vec<&str> = parent_tty.split("/").collect();
+            let mut child_tty_dir: Vec<&str> = child_tty.split("/").collect();
 
-                    assert_eq!(parent_tty_dir, child_tty_dir);
-                }
-                Err(e) => panic!("{}", e),
-            }
+            parent_tty_dir.pop();
+            child_tty_dir.pop();
+
+            assert_eq!(parent_tty_dir, child_tty_dir);
         }
 
         let _ = child.wait();
@@ -311,12 +305,9 @@ mod tests {
 
             let mut string = String::new();
 
-            match pty.read_to_string(&mut string) {
-                Ok(_) => {
-                    assert!(string.contains("readme!"));
-                }
-                Err(e) => panic!("{}", e),
-            }
+            pty.read_to_string(&mut string).unwrap_or_else(|e| panic!(e));
+
+            assert!(string.contains("readme!"));
 
             let _ = pty.write("exit\n".to_string().as_bytes());
         }
