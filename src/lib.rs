@@ -123,7 +123,7 @@ impl Read for ChildPTY {
         let nread = unsafe {
             libc::read(self.fd,
                        buf.as_mut_ptr() as *mut libc::c_void,
-                       buf.len() as libc::size_t)
+                       buf.len())
         };
 
         if nread < 0 {
@@ -139,7 +139,7 @@ impl Write for ChildPTY {
         let ret = unsafe {
             libc::write(self.fd,
                         buf.as_ptr() as *const libc::c_void,
-                        buf.len() as libc::size_t)
+                        buf.len())
         };
 
         if ret < 0 {

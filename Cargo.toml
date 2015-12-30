@@ -9,7 +9,7 @@ description='Fork with new pseudo-terminal (PTY)'
 keywords = ['pty', 'tty', 'pseudo', 'terminal', 'fork']
 
 [dependencies]
-libc = '0.1'
+libc = '0.2'
 nix = '0.4'
 clippy = {version = '0.0', optional = true}
 
