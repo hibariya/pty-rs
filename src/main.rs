@@ -1,0 +1,28 @@
+extern crate pty;
+extern crate libc;
+
+use std::ffi::CString;
+use std::io::Read;
+use std::ptr;
+
+use pty::fork::*;
+
+fn main() {
+  let fork = Fork::new("/dev/ptmx").unwrap();
+
+  if let Some(mut master) = fork.is_father().ok() {
+    let mut output        = String::new();
+
+    match master.read_to_string(&mut output) {
+      Ok(_nread) => println!("child tty is: {}", output.trim()),
+      Err(e)     => panic!("read error: {}", e),
+    }
+    let _ = fork.wait();
+  }
+  else {
+    let cmd  = CString::new("tty").unwrap().as_ptr();
+    let args = [cmd, ptr::null()].as_mut_ptr();
+
+    unsafe { libc::execvp(cmd, args) };
+  }
+}
