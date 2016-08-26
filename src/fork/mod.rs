@@ -4,8 +4,8 @@ mod err;
 use std::ffi::CString;
 
 use ::descriptor::Descriptor;
-
-use self::pty::{Master, Slave};
+pub use self::pty::{Master, MasterError};
+use self::pty::Slave;
 pub use self::err::{ForkError, Result};
 
 use ::libc;
