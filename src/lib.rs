@@ -27,7 +27,7 @@
 //! 
 //! ```toml
 //! [dependencies]
-//! pty = "0.1"
+//! pty = "0.2"
 //! ```
 //! 
 //! and this to your crate root:
@@ -41,20 +41,22 @@
 //! This function returns `pty::Child`. It represents the child process and its PTY.
 //! 
 //! For example, the following code spawns `tty(1)` command by `pty::fork()` and outputs the result of the command.
+//!
 //! ```rust
 //! extern crate pty;
 //! extern crate libc;
-//! 
+//!
 //! use std::ffi::CString;
 //! use std::io::Read;
 //! use std::ptr;
 //! 
 //! use pty::fork::*;
+//!
 //! fn main() {
 //!   let fork = Fork::from_ptmx().unwrap();
 //! 
 //!   if let Some(mut master) = fork.is_father().ok() {
-//! #   // Read output via PTY master
+//!     // Read output via PTY master
 //!     let mut output = String::new();
 //! 
 //!     match master.read_to_string(&mut output) {
@@ -64,7 +66,7 @@
 //!     let _ = fork.wait();
 //!   }
 //!   else {
-//! #   // Child process just exec `tty`
+//!     // Child process just exec `tty`
 //!     let cmd  = CString::new("tty").unwrap().as_ptr();
 //!     let args = [cmd, ptr::null()].as_mut_ptr();
 //! 

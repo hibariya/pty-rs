@@ -13,7 +13,7 @@ pub trait Descriptor : AsRawFd {
   fn open (
     path: *const libc::c_char,
     flag: libc::c_int,
-    mode: Option<libc::mode_t>,
+    mode: Option<libc::c_int>,
   ) -> Result<RawFd, DescriptorError> {
     unsafe {
       match libc::open(path, flag, mode.unwrap_or_default()) {
