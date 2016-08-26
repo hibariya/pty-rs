@@ -1,7 +1,7 @@
 extern crate pty;
 extern crate libc;
 
-use self::pty::fork::*;
+use self::pty::prelude::*;
 
 use std::io::prelude::*;
 

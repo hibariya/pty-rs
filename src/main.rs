@@ -5,7 +5,7 @@ use std::ffi::CString;
 use std::io::Read;
 use std::ptr;
 
-use pty::fork::*;
+use pty::prelude::*;
 
 fn main() {
   let fork = Fork::new("/dev/ptmx").unwrap();
