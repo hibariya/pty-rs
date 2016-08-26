@@ -8,17 +8,6 @@ license = "MIT"
 description = "Fork with new pseudo-terminal (PTY)"
 keywords = ["pty", "tty", "pseudo", "terminal", "fork"]
 
-[[bin]]
-name          = "example"
-path          = "src/main.rs"
-doc           = false
-
-[lib]
-name          = "pty"
-path          = "src/lib.rs"
-plugin        = true
-crate-type    = ["dylib"]
-
 [features]
 default       = []
 lints         = ["clippy", "nightly"]
