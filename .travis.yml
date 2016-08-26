@@ -1,6 +1,31 @@
+sudo: false
 language: rust
-rust:
+rust: 
+  - nightly
   - stable
   - beta
-  - nightly
-sudo: false
+
+branches:
+  except:
+    - gh-pages
+
+# Only while clippy is failing
+matrix:
+  allow_failures:
+    - rust: nightly
+env:
+  global:
+    - PATH="$PATH:$TRAVIS_BUILD_DIR/target/debug"
+cache:
+  directories:
+    - $TRAVIS_BUILD_DIR/target
+    - $HOME/.cargo
+
+os:
+  - linux
+  - osx
+
+script:
+  - cargo build --verbose
+  - cargo test
+
