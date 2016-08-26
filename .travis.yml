@@ -12,10 +12,16 @@ branches:
 # Only while clippy is failing
 matrix:
   allow_failures:
-    - rust: nightly
+    - os:
+      - linux:
+        - rust: nightly
+      - osx:
+        - rust: stable
+        - rust: beta
 env:
   global:
     - PATH="$PATH:$TRAVIS_BUILD_DIR/target/debug"
+    - RUST_BACKTRACE="1"
 cache:
   directories:
     - $TRAVIS_BUILD_DIR/target
@@ -28,4 +34,3 @@ os:
 script:
   - cargo build --verbose
   - cargo test
-
