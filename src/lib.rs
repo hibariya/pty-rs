@@ -27,7 +27,6 @@
 //! 
 //! ```toml
 //! [dependencies]
-//! 
 //! pty = "0.1"
 //! ```
 //! 
@@ -55,7 +54,7 @@
 //!   let fork = Fork::from_ptmx().unwrap();
 //! 
 //!   if let Some(mut master) = fork.is_father().ok() {
-//!     // Read output via PTY master
+//! #   // Read output via PTY master
 //!     let mut output = String::new();
 //! 
 //!     match master.read_to_string(&mut output) {
@@ -65,7 +64,7 @@
 //!     let _ = fork.wait();
 //!   }
 //!   else {
-//!     // Child process just exec `tty`
+//! #   // Child process just exec `tty`
 //!     let cmd  = CString::new("tty").unwrap().as_ptr();
 //!     let args = [cmd, ptr::null()].as_mut_ptr();
 //! 

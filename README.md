@@ -26,7 +26,6 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-
 pty = "0.2"
 ```
 
