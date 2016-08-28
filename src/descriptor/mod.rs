@@ -23,7 +23,7 @@ pub trait Descriptor : AsRawFd + Drop {
     }
   }
 
-  /// The desctructor function `close` closes the fd.
+  /// The function `close` leaves the fd.
   fn close (
     &self
   ) -> Result<(), DescriptorError> {
@@ -35,6 +35,8 @@ pub trait Descriptor : AsRawFd + Drop {
     }
   }
 
+  /// The destructor function `drop` call the method `close`
+  /// and panic if a error is occurred.
   fn drop(&self) {
     if self.close().is_err() {
       unimplemented!();
