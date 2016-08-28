@@ -6,7 +6,7 @@ use ::libc;
 
 pub use self::err::DescriptorError;
 
-pub trait Descriptor : AsRawFd + Drop {
+pub trait Descriptor : AsRawFd {
 
   /// The constructor function `open` opens the path
   /// and returns the fd.

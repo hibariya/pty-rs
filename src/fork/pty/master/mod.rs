@@ -8,7 +8,8 @@ use ::{libc, ffi};
 
 pub use self::err::{MasterError, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+#[allow(missing_copy_implementations)]
 pub struct Master {
   pty: RawFd,
 }
@@ -100,11 +101,5 @@ impl io::Write for Master {
 
   fn flush(&mut self) -> io::Result<()> {
     Ok(())
-  }
-}
-
-impl Drop for Master {
-  fn drop(&mut self) {
-    Descriptor::drop(self);
   }
 }

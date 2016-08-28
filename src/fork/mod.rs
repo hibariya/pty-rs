@@ -3,6 +3,7 @@ mod err;
 
 use std::ffi::CString;
 
+use ::descriptor::Descriptor;
 pub use self::pty::{Master, MasterError};
 use self::pty::Slave;
 pub use self::err::{ForkError, Result};
@@ -99,10 +100,10 @@ impl Fork {
 
   /// The function `is_father` returns the pid or father
   /// or none.
-  pub fn is_father(&mut self) -> Result<&mut Master> {
+  pub fn is_father(&self) -> Result<Master> {
     match *self {
       Fork::Child => Err(ForkError::IsChild),
-      Fork::Father(_, ref mut master) => Ok(master),
+      Fork::Father(_, ref master) => Ok(master.clone()),
     }
   }
 
@@ -112,6 +113,15 @@ impl Fork {
     match *self {
       Fork::Father(_, _) => Err(ForkError::IsFather),
       Fork::Child => Ok(0),
+    }
+  }
+}
+
+impl Drop for Fork {
+  fn drop(&mut self) {
+    match *self {
+      Fork::Father(_, ref master) => Descriptor::drop(master),
+      _ => {},
     }
   }
 }

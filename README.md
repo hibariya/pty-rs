@@ -52,9 +52,9 @@ use std::ptr;
 use pty::fork::*;
 
 fn main() {
-  let mut fork = Fork::from_ptmx().unwrap();
+  let fork = Fork::from_ptmx().unwrap();
 
-  if let Some(ref mut master) = fork.is_father().ok() {
+  if let Some(mut master) = fork.is_father().ok() {
     // Read output via PTY master
     let mut output = String::new();
 

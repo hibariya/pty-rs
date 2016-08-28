@@ -12,9 +12,9 @@ use std::string::String;
 
 #[test]
 fn it_fork_with_new_pty() {
-  let mut fork = Fork::from_ptmx().unwrap();
+  let fork = Fork::from_ptmx().unwrap();
 
-  if let Some(ref mut master) = fork.is_father().ok() {
+  if let Some(mut master) = fork.is_father().ok() {
     let mut string = String::new();
 
     master.read_to_string(&mut string).unwrap_or_else(|e| panic!(e));
