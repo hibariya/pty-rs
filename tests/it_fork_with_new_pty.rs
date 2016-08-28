@@ -12,9 +12,9 @@ use std::string::String;
 
 #[test]
 fn it_fork_with_new_pty() {
-  let fork = Fork::from_ptmx().unwrap();
+  let mut fork = Fork::from_ptmx().unwrap();
 
-  if let Some(mut master) = fork.is_father().ok() {
+  if let Some(ref mut master) = fork.is_father().ok() {
     let mut string = String::new();
 
     master.read_to_string(&mut string).unwrap_or_else(|e| panic!(e));
@@ -43,5 +43,4 @@ fn it_fork_with_new_pty() {
     let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
     let _ = unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
   }
-  let _ = fork.wait().unwrap();
 }

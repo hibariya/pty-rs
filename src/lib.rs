@@ -53,9 +53,9 @@
 //! use pty::fork::*;
 //!
 //! fn main() {
-//!   let fork = Fork::from_ptmx().unwrap();
+//!   let mut fork = Fork::from_ptmx().unwrap();
 //! 
-//!   if let Some(mut master) = fork.is_father().ok() {
+//!   if let Some(ref mut master) = fork.is_father().ok() {
 //!     // Read output via PTY master
 //!     let mut output = String::new();
 //! 
@@ -63,7 +63,6 @@
 //!       Ok(_nread) => println!("child tty is: {}", output.trim()),
 //!       Err(e)     => panic!("read error: {}", e),
 //!     }
-//!     let _ = fork.wait();
 //!   }
 //!   else {
 //!     // Child process just exec `tty`
@@ -98,3 +97,5 @@ mod ffi;
 mod descriptor;
 pub mod fork;
 pub mod prelude;
+
+const DEFAULT_PTMX: &'static str = "/dev/ptmx";

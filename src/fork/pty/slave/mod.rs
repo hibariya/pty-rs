@@ -7,7 +7,7 @@ use ::libc;
 
 pub use self::err::{SlaveError, Result};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub struct Slave {
   pty: RawFd,
 }
@@ -42,5 +42,11 @@ impl AsRawFd for Slave {
   /// The accessor function `as_raw_fd` returns the fd.
   fn as_raw_fd(&self) -> RawFd {
     self.pty
+  }
+}
+
+impl Drop for Slave {
+  fn drop(&mut self) {
+    Descriptor::drop(self);
   }
 }

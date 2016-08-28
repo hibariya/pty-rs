@@ -3,16 +3,13 @@ mod err;
 
 use std::ffi::CString;
 
-use ::descriptor::Descriptor;
 pub use self::pty::{Master, MasterError};
 use self::pty::Slave;
 pub use self::err::{ForkError, Result};
 
 use ::libc;
 
-const DEFAULT_PTMX: &'static str = "/dev/ptmx";
-
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub enum Fork {
   // Father child's pid and master's pty.
   Father(libc::pid_t, Master),
@@ -31,30 +28,19 @@ impl Fork {
       CString::new(path).ok().unwrap_or_default().as_ptr()
     ) {
       Err(cause) => Err(ForkError::BadMaster(cause)),
-      Ok(master) => {
+      Ok(master) => unsafe {
         if let Some(cause) = master.grantpt().err().or(
                              master.unlockpt().err()) {
           Err(ForkError::BadMaster(cause))
         }
         else {
-          unsafe {
-            match libc::fork() {
-              -1 => Err(ForkError::Failure),
-              0 => {
-                match master.ptsname() {
-                  Err(cause) => Err(ForkError::BadMaster(cause)),
-                  Ok(name) => {
-                    if let Some(cause) = master.close().err() {
-                      Err(ForkError::BadDescriptorMaster(cause))
-                    }
-                    else {
-                      Fork::from_pts(name)
-                    }
-                  },
-                }
-              },
-              pid => Ok(Fork::Father(pid, master)),
-            }
+          match libc::fork() {
+            -1 => Err(ForkError::Failure),
+            0 => match master.ptsname() {
+              Err(cause) => Err(ForkError::BadMaster(cause)),
+              Ok(name) => Fork::from_pts(name), 
+            },
+            pid => Ok(Fork::Father(pid, master)),
           }
         }
       },
@@ -80,9 +66,6 @@ impl Fork {
                                  slave.dup2(libc::STDERR_FILENO).err())) {
               Err(ForkError::BadSlave(cause))
             }
-            else if let Some(cause) = slave.close().err() {
-              Err(ForkError::BadDescriptorSlave(cause))
-            }
             else {
               Ok(Fork::Child)
             }
@@ -95,10 +78,10 @@ impl Fork {
   /// The constructor function `from_ptmx` forks the program
   /// and returns the current pid for a default PTMX's path.
   pub fn from_ptmx() -> Result<Self> {
-    Fork::new(DEFAULT_PTMX)
+    Fork::new(::DEFAULT_PTMX)
   }
 
-  /// Waits until it's terminated. Then closes its pty.
+  /// Waits until it's terminated.
   pub fn wait(&self) -> Result<libc::pid_t> {
     match *self {
       Fork::Child => Err(ForkError::IsChild),
@@ -116,10 +99,10 @@ impl Fork {
 
   /// The function `is_father` returns the pid or father
   /// or none.
-  pub fn is_father(&self) -> Result<Master> {
+  pub fn is_father(&mut self) -> Result<&mut Master> {
     match *self {
       Fork::Child => Err(ForkError::IsChild),
-      Fork::Father(_, master) => Ok(master),
+      Fork::Father(_, ref mut master) => Ok(master),
     }
   }
 

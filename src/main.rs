@@ -5,21 +5,22 @@ use std::ffi::CString;
 use std::io::Read;
 use std::ptr;
 
-use pty::prelude::*;
+use pty::fork::*;
 
 fn main() {
-  let fork = Fork::new("/dev/ptmx").unwrap();
+  let mut fork = Fork::from_ptmx().unwrap();
 
-  if let Some(mut master) = fork.is_father().ok() {
-    let mut output        = String::new();
+  if let Some(ref mut master) = fork.is_father().ok() {
+    // Read output via PTY master
+    let mut output = String::new();
 
     match master.read_to_string(&mut output) {
       Ok(_nread) => println!("child tty is: {}", output.trim()),
       Err(e)     => panic!("read error: {}", e),
     }
-    let _ = fork.wait();
   }
   else {
+    // Child process just exec `tty`
     let cmd  = CString::new("tty").unwrap().as_ptr();
     let args = [cmd, ptr::null()].as_mut_ptr();
 

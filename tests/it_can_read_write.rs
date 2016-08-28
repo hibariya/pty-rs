@@ -11,9 +11,9 @@ use std::string::String;
 
 #[test]
 fn it_can_read_write() {
-  let fork = Fork::from_ptmx().unwrap();
+  let mut fork = Fork::from_ptmx().unwrap();
 
-  if let Some(mut master) = fork.is_father().ok() {
+  if let Some(ref mut master) = fork.is_father().ok() {
     let _ = master.write("echo readme!\n".to_string().as_bytes());
 
     let mut string = String::new();
@@ -31,5 +31,4 @@ fn it_can_read_write() {
 
     let _ = unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
   }
-  let _ = fork.wait();
 }

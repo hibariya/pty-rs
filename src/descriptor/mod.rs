@@ -6,7 +6,7 @@ use ::libc;
 
 pub use self::err::DescriptorError;
 
-pub trait Descriptor : AsRawFd {
+pub trait Descriptor : AsRawFd + Drop {
 
   /// The constructor function `open` opens the path
   /// and returns the fd.
@@ -32,6 +32,12 @@ pub trait Descriptor : AsRawFd {
         -1 => Err(DescriptorError::CloseFail),
         _ => Ok(()),
       }
+    }
+  }
+
+  fn drop(&self) {
+    if self.close().is_err() {
+      unimplemented!();
     }
   }
 }
