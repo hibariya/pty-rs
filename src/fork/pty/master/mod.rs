@@ -8,8 +8,7 @@ use ::{libc, ffi};
 
 pub use self::err::{MasterError, Result};
 
-#[derive(Debug, Clone)]
-#[allow(missing_copy_implementations)]
+#[derive(Debug, Copy, Clone)]
 pub struct Master {
   pty: RawFd,
 }
