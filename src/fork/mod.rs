@@ -5,7 +5,7 @@ use std::ffi::CString;
 
 use ::descriptor::Descriptor;
 pub use self::pty::{Master, MasterError};
-use self::pty::Slave;
+pub use self::pty::{Slave, SlaveError};
 pub use self::err::{ForkError, Result};
 
 use ::libc;
@@ -15,7 +15,7 @@ pub enum Fork {
   // Father child's pid and master's pty.
   Father(libc::pid_t, Master),
   // Child pid 0.
-  Child,
+  Child(Slave),
 }
 
 impl Fork {
@@ -68,7 +68,7 @@ impl Fork {
               Err(ForkError::BadSlave(cause))
             }
             else {
-              Ok(Fork::Child)
+              Ok(Fork::Child(slave))
             }
           },
         }
@@ -85,7 +85,7 @@ impl Fork {
   /// Waits until it's terminated.
   pub fn wait(&self) -> Result<libc::pid_t> {
     match *self {
-      Fork::Child => Err(ForkError::IsChild),
+      Fork::Child(_) => Err(ForkError::IsChild),
       Fork::Father(pid, _) => loop {
         unsafe {
           match libc::waitpid(pid, &mut 0, 0) {
@@ -102,17 +102,17 @@ impl Fork {
   /// or none.
   pub fn is_father(&self) -> Result<Master> {
     match *self {
-      Fork::Child => Err(ForkError::IsChild),
+      Fork::Child(_) => Err(ForkError::IsChild),
       Fork::Father(_, ref master) => Ok(master.clone()),
     }
   }
 
   /// The function `is_child` returns the pid or child
   /// or none.
-  pub fn is_child(&self) -> Result<libc::pid_t> {
+  pub fn is_child(&self) -> Result<&Slave> {
     match *self {
       Fork::Father(_, _) => Err(ForkError::IsFather),
-      Fork::Child => Ok(0),
+      Fork::Child(ref slave) => Ok(slave),
     }
   }
 }

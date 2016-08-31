@@ -30,7 +30,7 @@ impl Error for SlaveError {
 
   fn description(&self) -> &str {
     match *self {
-      SlaveError::BadDescriptor(_) => "the descriptor as meet an error",
+      SlaveError::BadDescriptor(_) => "the descriptor as occured an error",
       SlaveError::Dup2Error => "the `dup2` has a error, errno is\
                                 set appropriately.",
     }

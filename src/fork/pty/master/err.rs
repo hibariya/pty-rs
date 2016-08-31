@@ -32,7 +32,7 @@ impl Error for MasterError {
 
     fn description(&self) -> &str {
         match *self {
-            MasterError::BadDescriptor(_) => "the descriptor as meet an error",
+            MasterError::BadDescriptor(_) => "the descriptor as occured an error",
             MasterError::GrantptError => "the `grantpt` has a error, errno\
                                           is set appropriately.",
             MasterError::UnlockptError => "the `grantpt` has a error, errno\

@@ -23,13 +23,13 @@ pub enum ForkError {
     IsChild,
     /// Is father and not child.
     IsFather,
-    /// The Master meet a error.
+    /// The Master occured a error.
     BadMaster(MasterError),
-    /// The Slave meet a error.
+    /// The Slave occured a error.
     BadSlave(SlaveError),
-    /// The Master's Descriptor meet a error.
+    /// The Master's Descriptor occured a error.
     BadDescriptorMaster(DescriptorError),
-    /// The Slave's Descriptor meet a error.
+    /// The Slave's Descriptor occured a error.
     BadDescriptorSlave(DescriptorError),
 }
 
@@ -56,10 +56,10 @@ impl Error for ForkError {
             ForkError::WaitpidFail => "Can't suspending the calling process.",
             ForkError::IsChild => "is child and not father",
             ForkError::IsFather => "is father and not child",
-            ForkError::BadMaster(_) => "the master as meet an error",
-            ForkError::BadSlave(_) => "the slave as meet an error",
-            ForkError::BadDescriptorMaster(_) => "the master's descriptor as meet an error",
-            ForkError::BadDescriptorSlave(_) => "the slave's descriptor as meet an error",
+            ForkError::BadMaster(_) => "the master as occured an error",
+            ForkError::BadSlave(_) => "the slave as occured an error",
+            ForkError::BadDescriptorMaster(_) => "the master's descriptor as occured an error",
+            ForkError::BadDescriptorSlave(_) => "the slave's descriptor as occured an error",
 
         }
     }
