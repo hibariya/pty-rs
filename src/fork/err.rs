@@ -19,10 +19,10 @@ pub enum ForkError {
     SetsidFail,
     /// Can't suspending the calling process.
     WaitpidFail,
-    /// Is child and not father.
+    /// Is child and not parent.
     IsChild,
-    /// Is father and not child.
-    IsFather,
+    /// Is parent and not child.
+    IsParent,
     /// The Master occured a error.
     BadMaster(MasterError),
     /// The Slave occured a error.
@@ -54,8 +54,8 @@ impl Error for ForkError {
             ForkError::SetsidFail => "fails if the calling process is already\
                                       a process group leader.",
             ForkError::WaitpidFail => "Can't suspending the calling process.",
-            ForkError::IsChild => "is child and not father",
-            ForkError::IsFather => "is father and not child",
+            ForkError::IsChild => "is child and not parent",
+            ForkError::IsParent => "is parent and not child",
             ForkError::BadMaster(_) => "the master as occured an error",
             ForkError::BadSlave(_) => "the slave as occured an error",
             ForkError::BadDescriptorMaster(_) => "the master's descriptor as occured an error",

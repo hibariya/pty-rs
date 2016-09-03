@@ -14,7 +14,7 @@ use std::string::String;
 fn it_fork_with_new_pty() {
   let fork = Fork::from_ptmx().unwrap();
 
-  if let Some(mut master) = fork.is_father().ok() {
+  if let Some(mut master) = fork.is_parent().ok() {
     let mut string = String::new();
 
     master.read_to_string(&mut string).unwrap_or_else(|e| panic!(e));

@@ -12,8 +12,8 @@ use ::libc;
 
 #[derive(Debug)]
 pub enum Fork {
-  // Father child's pid and master's pty.
-  Father(libc::pid_t, Master),
+  // Parent child's pid and master's pty.
+  Parent(libc::pid_t, Master),
   // Child pid 0.
   Child(Slave),
 }
@@ -41,7 +41,7 @@ impl Fork {
               Err(cause) => Err(ForkError::BadMaster(cause)),
               Ok(name) => Fork::from_pts(name), 
             },
-            pid => Ok(Fork::Father(pid, master)),
+            pid => Ok(Fork::Parent(pid, master)),
           }
         }
       },
@@ -86,7 +86,7 @@ impl Fork {
   pub fn wait(&self) -> Result<libc::pid_t> {
     match *self {
       Fork::Child(_) => Err(ForkError::IsChild),
-      Fork::Father(pid, _) => loop {
+      Fork::Parent(pid, _) => loop {
         unsafe {
           match libc::waitpid(pid, &mut 0, 0) {
             0 => continue ,
@@ -98,12 +98,12 @@ impl Fork {
     }
   }
 
-  /// The function `is_father` returns the pid or father
+  /// The function `is_parent` returns the pid or parent
   /// or none.
-  pub fn is_father(&self) -> Result<Master> {
+  pub fn is_parent(&self) -> Result<Master> {
     match *self {
       Fork::Child(_) => Err(ForkError::IsChild),
-      Fork::Father(_, ref master) => Ok(master.clone()),
+      Fork::Parent(_, ref master) => Ok(master.clone()),
     }
   }
 
@@ -111,7 +111,7 @@ impl Fork {
   /// or none.
   pub fn is_child(&self) -> Result<&Slave> {
     match *self {
-      Fork::Father(_, _) => Err(ForkError::IsFather),
+      Fork::Parent(_, _) => Err(ForkError::IsParent),
       Fork::Child(ref slave) => Ok(slave),
     }
   }
@@ -120,7 +120,7 @@ impl Fork {
 impl Drop for Fork {
   fn drop(&mut self) {
     match *self {
-      Fork::Father(_, ref master) => Descriptor::drop(master),
+      Fork::Parent(_, ref master) => Descriptor::drop(master),
       _ => {},
     }
   }

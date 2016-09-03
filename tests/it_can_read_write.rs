@@ -13,7 +13,7 @@ use std::string::String;
 fn it_can_read_write() {
   let fork = Fork::from_ptmx().unwrap();
 
-  if let Some(mut master) = fork.is_father().ok() {
+  if let Some(mut master) = fork.is_parent().ok() {
     let _ = master.write("echo readme!\n".to_string().as_bytes());
 
     let mut string = String::new();

@@ -55,7 +55,7 @@
 //! fn main() {
 //!   let fork = Fork::from_ptmx().unwrap();
 //! 
-//!   if let Some(mut master) = fork.is_father().ok() {
+//!   if let Some(mut master) = fork.is_parent().ok() {
 //!     // Read output via PTY master
 //!     let mut output = String::new();
 //! 
