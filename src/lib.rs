@@ -17,29 +17,29 @@
 //! The `pty` crate provides `pty::fork()`. That makes a parent process fork with new pseudo-terminal (PTY).
 //!
 //! This crate depends on followings:
-//! 
+//!
 //! * `libc` library
 //! * POSIX environment
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! Add this to your `Cargo.toml`:
-//! 
+//!
 //! ```toml
 //! [dependencies]
 //! pty = "0.2"
 //! ```
-//! 
+//!
 //! and this to your crate root:
-//! 
+//!
 //! ```rust
 //! extern crate pty;
 //! ```
-//! 
+//!
 //! ### pty::fork()
-//! 
+//!
 //! This function returns `pty::Child`. It represents the child process and its PTY.
-//! 
+//!
 //! For example, the following code spawns `tty(1)` command by `pty::fork()` and outputs the result of the command.
 //!
 //! ```rust
@@ -49,16 +49,16 @@
 //! use std::ffi::CString;
 //! use std::io::Read;
 //! use std::ptr;
-//! 
+//!
 //! use pty::fork::*;
 //!
 //! fn main() {
 //!   let fork = Fork::from_ptmx().unwrap();
-//! 
+//!
 //!   if let Some(mut master) = fork.is_parent().ok() {
 //!     // Read output via PTY master
 //!     let mut output = String::new();
-//! 
+//!
 //!     match master.read_to_string(&mut output) {
 //!       Ok(_nread) => println!("child tty is: {}", output.trim()),
 //!       Err(e)     => panic!("read error: {}", e),
@@ -68,7 +68,7 @@
 //!     // Child process just exec `tty`
 //!     let cmd  = CString::new("tty").unwrap().as_ptr();
 //!     let args = [cmd, ptr::null()].as_mut_ptr();
-//! 
+//!
 //!     unsafe { libc::execvp(cmd, args) };
 //!   }
 //! }
@@ -80,14 +80,14 @@
 #![cfg_attr(feature = "lints", plugin(clippy))]
 #![cfg_attr(feature = "lints", deny(warnings))]
 #![deny(
-    missing_debug_implementations,
-    missing_copy_implementations,
-    trivial_casts,
-    trivial_numeric_casts,
-    unstable_features,
-    unused_import_braces,
-    unused_features,
-    unused_qualifications,
+	missing_debug_implementations,
+	missing_copy_implementations,
+	trivial_casts,
+	trivial_numeric_casts,
+	unstable_features,
+	unused_import_braces,
+	unused_features,
+	unused_qualifications,
 )]
 
 extern crate libc;
