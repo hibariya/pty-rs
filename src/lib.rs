@@ -80,14 +80,14 @@
 #![cfg_attr(feature = "lints", plugin(clippy))]
 #![cfg_attr(feature = "lints", deny(warnings))]
 #![deny(
-	missing_debug_implementations,
-	missing_copy_implementations,
-	trivial_casts,
-	trivial_numeric_casts,
-	unstable_features,
-	unused_import_braces,
-	unused_features,
-	unused_qualifications,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unstable_features,
+    unused_import_braces,
+    unused_features,
+    unused_qualifications,
 )]
 
 extern crate libc;
