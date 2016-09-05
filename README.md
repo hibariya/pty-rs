@@ -1,4 +1,17 @@
-# PTY [![Build Status](https://travis-ci.org/hibariya/pty-rs.svg?branch=master)](https://travis-ci.org/hibariya/pty-rs)
+# PTY 
+[![Crate][crate-badge]][crate] [![docs-badge][]][docs] [![license-badge][]][license] [![travis-badge][]][travis]
+
+[crate-badge]: https://img.shields.io/badge/crates.io-v0.2.0-orange.svg?style=flat-square
+[crate]: https://crates.io/crates/pty
+
+[docs-badge]: https://img.shields.io/badge/API-docs-blue.svg?style=flat-square
+[docs]: http://note.hibariya.org/pty-rs/pty/index.html
+
+[license-badge]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
+[license]: https://github.com/hibariya/pty-rs/blob/master/LICENSE.txt
+
+[travis-badge]: https://travis-ci.org/hibariya/pty-rs.svg?branch=master&style=flat-square
+[travis]: https://travis-ci.org/hibariya/pty-rs
 
 The `pty` crate provides `pty::fork()`. That makes a parent process fork with new pseudo-terminal (PTY).
 
@@ -13,8 +26,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-
-pty = "0.1"
+pty = "0.2"
 ```
 
 and this to your crate root:
@@ -30,36 +42,34 @@ This function returns `pty::Child`. It represents the child process and its PTY.
 For example, the following code spawns `tty(1)` command by `pty::fork()` and outputs the result of the command.
 
 ```rust
-extern crate libc;
 extern crate pty;
+extern crate libc;
 
 use std::ffi::CString;
 use std::io::Read;
 use std::ptr;
 
-fn main()
-{
-    let child = pty::fork().unwrap();
+use pty::fork::*;
 
-    if child.pid() == 0 {
-        // Child process just exec `tty`
-        let cmd  = CString::new("tty").unwrap().as_ptr();
-        let args = [cmd, ptr::null()].as_mut_ptr();
+fn main() {
+  let fork = Fork::from_ptmx().unwrap();
 
-        unsafe { libc::execvp(cmd, args) };
+  if let Some(mut master) = fork.is_father().ok() {
+    // Read output via PTY master
+    let mut output = String::new();
+
+    match master.read_to_string(&mut output) {
+      Ok(_nread) => println!("child tty is: {}", output.trim()),
+      Err(e)     => panic!("read error: {}", e),
     }
-    else {
-        // Read output via PTY master
-        let mut output     = String::new();
-        let mut pty_master = child.pty().unwrap();
+  }
+  else {
+    // Child process just exec `tty`
+    let cmd  = CString::new("tty").unwrap().as_ptr();
+    let args = [cmd, ptr::null()].as_mut_ptr();
 
-        match pty_master.read_to_string(&mut output) {
-            Ok(_nread) => println!("child tty is: {}", output.trim()),
-            Err(e)     => panic!("read error: {}", e)
-        }
-
-        let _ = child.wait();
-    }
+    unsafe { libc::execvp(cmd, args) };
+  }
 }
 ```
 

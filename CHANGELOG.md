@@ -1,3 +1,8 @@
+### 0.2.0
+* Improve the Error Handling.
+* Improve the POO representation.
+* Remove the **posix_openpt**(3) call.
+
 ### 0.1.6
 
 * [#5](https://github.com/hibariya/pty-rs/pull/5) Improve error representation
