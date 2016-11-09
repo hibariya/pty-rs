@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `ForkError` enum in crate `pty`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, ForkError">
+
+    <title>pty::prelude::ForkError - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>pty</a>::<wbr><a href='index.html'>prelude</a></p><script>window.sidebarCurrent = {name: 'ForkError', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content enum">
+<h1 class='fqn'><span class='in-band'>Enum <a href='../index.html'>pty</a>::<wbr><a href='index.html'>prelude</a>::<wbr><a class='enum' href=''>ForkError</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-278' class='srclink' href='../../src/pty/src/fork/err.rs.html#13-32' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum ForkError {
+    Failure,
+    SetsidFail,
+    WaitpidFail,
+    IsChild,
+    IsParent,
+    BadMaster(<a class='enum' href='../../pty/fork/enum.MasterError.html' title='pty::fork::MasterError'>MasterError</a>),
+    BadSlave(<a class='enum' href='../../pty/fork/enum.SlaveError.html' title='pty::fork::SlaveError'>SlaveError</a>),
+    BadDescriptorMaster(DescriptorError),
+    BadDescriptorSlave(DescriptorError),
+}</pre><div class='docblock'><p>The enum <code>ForkError</code> defines the possible errors from constructor Fork.</p>
+</div><h2 class='variants'>Variants</h2>
+<span id='variant.Failure' class='variant'><span id='Failure.v' class='invisible'><code>Failure</code></span></span><div class='docblock'><p>Can&#39;t creates the child.</p>
+</div><span id='variant.SetsidFail' class='variant'><span id='SetsidFail.v' class='invisible'><code>SetsidFail</code></span></span><div class='docblock'><p>Can&#39;t set the id group.</p>
+</div><span id='variant.WaitpidFail' class='variant'><span id='WaitpidFail.v' class='invisible'><code>WaitpidFail</code></span></span><div class='docblock'><p>Can&#39;t suspending the calling process.</p>
+</div><span id='variant.IsChild' class='variant'><span id='IsChild.v' class='invisible'><code>IsChild</code></span></span><div class='docblock'><p>Is child and not parent.</p>
+</div><span id='variant.IsParent' class='variant'><span id='IsParent.v' class='invisible'><code>IsParent</code></span></span><div class='docblock'><p>Is parent and not child.</p>
+</div><span id='variant.BadMaster' class='variant'><span id='BadMaster.v' class='invisible'><code>BadMaster(<a class='enum' href='../../pty/fork/enum.MasterError.html' title='pty::fork::MasterError'>MasterError</a>)</code></span></span><div class='docblock'><p>The Master occured a error.</p>
+</div><span id='variant.BadSlave' class='variant'><span id='BadSlave.v' class='invisible'><code>BadSlave(<a class='enum' href='../../pty/fork/enum.SlaveError.html' title='pty::fork::SlaveError'>SlaveError</a>)</code></span></span><div class='docblock'><p>The Slave occured a error.</p>
+</div><span id='variant.BadDescriptorMaster' class='variant'><span id='BadDescriptorMaster.v' class='invisible'><code>BadDescriptorMaster(DescriptorError)</code></span></span><div class='docblock'><p>The Master&#39;s Descriptor occured a error.</p>
+</div><span id='variant.BadDescriptorSlave' class='variant'><span id='BadDescriptorSlave.v' class='invisible'><code>BadDescriptorSlave(DescriptorError)</code></span></span><div class='docblock'><p>The Slave&#39;s Descriptor occured a error.</p>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html' title='core::clone::Clone'>Clone</a> for <a class='enum' href='../../pty/fork/enum.ForkError.html' title='pty::fork::ForkError'>ForkError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-292' class='srclink' href='../../src/pty/src/fork/err.rs.html#12' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.clone' class='method'><span id='clone.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone' class='fnname'>clone</a>(&amp;self) -&gt; <a class='enum' href='../../pty/fork/enum.ForkError.html' title='pty::fork::ForkError'>ForkError</a></code></span></h4>
+<div class='docblock'><p>Returns a copy of the value. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#tymethod.clone">Read more</a></p>
+</div><h4 id='method.clone_from' class='method'><span id='clone_from.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from' class='fnname'>clone_from</a>(&amp;mut self, source: &amp;Self)</code><div class='since' title='Stable since Rust version 1.0.0'>1.0.0</div></span></h4>
+<div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html' title='core::marker::Copy'>Copy</a> for <a class='enum' href='../../pty/fork/enum.ForkError.html' title='pty::fork::ForkError'>ForkError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-295' class='srclink' href='../../src/pty/src/fork/err.rs.html#12' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../../pty/fork/enum.ForkError.html' title='pty::fork::ForkError'>ForkError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-296' class='srclink' href='../../src/pty/src/fork/err.rs.html#12' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt' class='method'><span id='fmt.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>Formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html' title='core::fmt::Display'>Display</a> for <a class='enum' href='../../pty/fork/enum.ForkError.html' title='pty::fork::ForkError'>ForkError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-152' class='srclink' href='../../src/pty/src/fork/err.rs.html#34-40' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.fmt-1' class='method'><span id='fmt.v-1' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, f: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></span></h4>
+<div class='docblock'><p>The function <code>fmt</code> formats the value using the given formatter.</p>
+</div></div><h3 class='impl'><span class='in-band'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a> for <a class='enum' href='../../pty/fork/enum.ForkError.html' title='pty::fork::ForkError'>ForkError</a></code></span><span class='out-of-band'><div class='ghost'></div><a id='src-156' class='srclink' href='../../src/pty/src/fork/err.rs.html#42-76' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.description' class='method'><span id='description.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#tymethod.description' class='fnname'>description</a>(&amp;self) -&gt; &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a></code></span></h4>
+<div class='docblock'><p>The function <code>description</code> returns a short description of the error.</p>
+</div><h4 id='method.cause' class='method'><span id='cause.v' class='invisible'><code>fn <a href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html#method.cause' class='fnname'>cause</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;&amp;<a class='trait' href='https://doc.rust-lang.org/nightly/std/error/trait.Error.html' title='std::error::Error'>Error</a>&gt;</code></span></h4>
+<div class='docblock'><p>The function <code>cause</code> returns the lower-level cause of this error, if any.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "pty";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>

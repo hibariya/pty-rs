@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ForkError","The enum `ForkError` defines the possible errors from constructor Fork."],["MasterError","The enum `MasterError` defines the possible errors from constructor Master."],["SlaveError","The enum `SlaveError` defines the possible errors from constructor Slave."]],"struct":[["Master",""],["Slave",""]]});
