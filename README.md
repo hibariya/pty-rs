@@ -65,10 +65,10 @@ fn main() {
   }
   else {
     // Child process just exec `tty`
-    let cmd  = CString::new("tty").unwrap().as_ptr();
-    let args = [cmd, ptr::null()].as_mut_ptr();
+    let cmd  = CString::new("tty").unwrap();
+    let args = [cmd.as_ptr(), ptr::null()].as_mut_ptr();
 
-    unsafe { libc::execvp(cmd, args) };
+    unsafe { libc::execvp(cmd.as_ptr(), args) };
   }
 }
 ```
