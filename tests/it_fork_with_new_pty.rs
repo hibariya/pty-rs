@@ -28,6 +28,7 @@ fn it_fork_with_new_pty() {
 
         let parent_tty = String::from_utf8_lossy(&output);
         let child_tty = string.trim();
+        println!("parent: {}, child: {}", parent_tty, child_tty);
 
         assert!(child_tty != "");
         assert!(child_tty != parent_tty);
