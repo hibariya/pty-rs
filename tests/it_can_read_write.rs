@@ -1,13 +1,20 @@
 extern crate pty;
 extern crate libc;
 
-use self::pty::prelude::*;
-
-use std::ffi::CString;
-
 use std::io::prelude::*;
-use std::ptr;
 use std::string::String;
+use std::process::Command;
+use pty::fork::{Fork, Master};
+
+fn read_line(master:&mut Master) -> String {
+    let mut buf = [0];
+    let mut res = String::new();
+    while buf[0] as char != '\n' {
+        master.read(&mut buf).expect("cannot read 1 byte");
+        res.push(buf[0] as char)
+    }
+    res
+}
 
 #[test]
 fn it_can_read_write() {
@@ -16,18 +23,11 @@ fn it_can_read_write() {
     if let Some(mut master) = fork.is_parent().ok() {
         let _ = master.write("echo readme!\n".to_string().as_bytes());
 
-        let mut string = String::new();
-
-        master.read_to_string(&mut string).unwrap_or_else(|e| panic!(e));
-
-        assert!(string.contains("readme!"));
-
+        read_line(&mut master); // this is the "echo readme!" we just sent
+        read_line(&mut master); // this is the shell and "echo readme!" again
+        assert_eq!(read_line(&mut master).trim(), "readme!");
         let _ = master.write("exit\n".to_string().as_bytes());
     } else {
-        let mut ptrs = [CString::new("bash").unwrap().as_ptr(), ptr::null()];
-
-        print!(" "); // FIXME I'm not sure but this is needed to prevent read-block.
-
-        let _ = unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
+        let _ = Command::new("bash").status();
     }
 }
