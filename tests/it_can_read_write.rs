@@ -4,7 +4,7 @@ extern crate libc;
 use std::io::prelude::*;
 use std::string::String;
 use std::process::Command;
-use pty::fork::{Fork, Master};
+use self::pty::fork::{Fork, Master};
 
 fn read_line(master:&mut Master) -> String {
     let mut buf = [0];
