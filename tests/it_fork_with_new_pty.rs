@@ -29,7 +29,6 @@ fn it_fork_with_new_pty() {
 
         let parent_tty = output_str.trim();
         let child_tty = string.trim();
-        println!("parent: {}, child: {}", parent_tty, child_tty);
 
         assert!(child_tty != "");
         assert!(child_tty != parent_tty);
