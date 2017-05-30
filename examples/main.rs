@@ -3,9 +3,8 @@ extern crate libc;
 extern crate errno;
 
 use pty::fork::*;
-use std::ffi;
 use std::io::Read;
-use std::ptr;
+use std::process::{Command};
 
 fn main() {
     let fork = Fork::from_ptmx().unwrap();
@@ -20,15 +19,6 @@ fn main() {
         }
     } else {
         // Child process just exec `tty`
-        let cmd = ffi::CString::new("tty").unwrap();
-        let mut args: Vec<*const libc::c_char> = Vec::with_capacity(1);
-
-        args.push(cmd.as_ptr());
-        args.push(ptr::null());
-        unsafe {
-            if libc::execvp(cmd.as_ptr(), args.as_mut_ptr()).eq(&-1) {
-                panic!("{}: {}", cmd.to_string_lossy(), ::errno::errno());
-            }
-        };
+        Command::new("tty").status().expect("could not execute tty");
     }
 }
