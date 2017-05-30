@@ -4,11 +4,8 @@ extern crate errno;
 
 use self::pty::prelude::*;
 
-use std::ffi;
-
 use std::io::prelude::*;
 use std::process::{Command, Stdio};
-use std::ptr;
 use std::string::String;
 
 #[test]
@@ -45,15 +42,6 @@ fn it_fork_with_new_pty() {
             assert_eq!(parent_tty_dir, child_tty_dir);
         }
     } else {
-        let cmd = ffi::CString::new("tty").unwrap();
-        let mut args: Vec<*const libc::c_char> = Vec::with_capacity(1);
-
-        args.push(cmd.as_ptr());
-        args.push(ptr::null());
-        unsafe {
-            if libc::execvp(cmd.as_ptr(), args.as_mut_ptr()).eq(&-1) {
-                panic!("{}: {}", cmd.to_string_lossy(), self::errno::errno());
-            }
-        }
+        Command::new("tty").status().expect("could not execute tty");
     }
 }

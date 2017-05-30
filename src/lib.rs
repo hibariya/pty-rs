@@ -48,7 +48,7 @@
 //!
 //! use std::ffi::CString;
 //! use std::io::Read;
-//! use std::ptr;
+//! use std::process::{Command};
 //!
 //! use pty::fork::*;
 //!
@@ -66,10 +66,7 @@
 //!   }
 //!   else {
 //!     // Child process just exec `tty`
-//!     let cmd  = CString::new("tty").unwrap().as_ptr();
-//!     let args = [cmd, ptr::null()].as_mut_ptr();
-//!
-//!     unsafe { libc::execvp(cmd, args) };
+//!     Command::new("tty").status().expect("could not execute tty");
 //!   }
 //! }
 //! ```
