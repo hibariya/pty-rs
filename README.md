@@ -82,7 +82,7 @@ child tty is: /dev/pts/8
 
 ## Documentation
 
-API documentation for latest version: http://hibariya.github.io/pty-rs/index.html
+API documentation for latest version: http://hibariya.github.io/pty-rs/pty/index.html
 
 ## Contributing
 
