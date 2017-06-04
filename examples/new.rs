@@ -3,12 +3,8 @@ extern crate libc;
 
 use self::pty::prelude::*;
 
-use std::ffi::CString;
-
 use std::io::prelude::*;
 use std::process::{Command, Stdio};
-use std::ptr;
-use std::string::String;
 
 fn main() {
     let fork = Fork::from_ptmx().unwrap();
@@ -23,8 +19,9 @@ fn main() {
             .output()
             .unwrap()
             .stdout;
+        let output_str = String::from_utf8_lossy(&output);
 
-        let parent_tty = String::from_utf8_lossy(&output);
+        let parent_tty = output_str.trim();
         let child_tty = string.trim();
 
         println!("child_tty(\"{}\")[{}] != \"{}\" => {}", child_tty, child_tty.len(), "", child_tty != "");
@@ -39,7 +36,6 @@ fn main() {
 
         assert_eq!(parent_tty_dir, child_tty_dir);
     } else {
-        let mut ptrs = [CString::new("tty").unwrap().as_ptr(), ptr::null()];
-        let _ = unsafe { libc::execvp(*ptrs.as_ptr(), ptrs.as_mut_ptr()) };
+        let _ = Command::new("tty").status();
     }
 }

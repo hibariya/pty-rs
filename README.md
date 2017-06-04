@@ -65,10 +65,7 @@ fn main() {
   }
   else {
     // Child process just exec `tty`
-    let cmd  = CString::new("tty").unwrap().as_ptr();
-    let args = [cmd, ptr::null()].as_mut_ptr();
-
-    unsafe { libc::execvp(cmd, args) };
+    Command::new("tty").status().expect("could not execute tty");
   }
 }
 ```

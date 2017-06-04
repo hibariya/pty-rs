@@ -1,6 +1,6 @@
 sudo: false
 language: rust
-rust: 
+rust:
   - nightly
   - stable
   - beta
