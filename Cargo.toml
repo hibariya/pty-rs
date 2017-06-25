@@ -20,7 +20,7 @@ travis        = ["lints", "nightly"] # for building with travis-cargo
 version       = "0.1"
 
 [dependencies.libc]
-version       = "0.2"
+version       = ">= 0.2.18"
 
 [dependencies.clippy]
 version       = "0.0"
