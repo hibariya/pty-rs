@@ -1,6 +1,4 @@
-extern crate errno;
-extern crate libc;
-extern crate pty;
+use pty;
 
 use self::pty::prelude::*;
 

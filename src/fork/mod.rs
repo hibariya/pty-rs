@@ -1,7 +1,7 @@
 mod err;
 mod pty;
 
-use descriptor::Descriptor;
+use crate::descriptor::Descriptor;
 
 pub use self::err::{ForkError, Result};
 pub use self::pty::{Master, MasterError};
@@ -70,7 +70,7 @@ impl Fork {
     /// The constructor function `from_ptmx` forks the program
     /// and returns the current pid for a default PTMX's path.
     pub fn from_ptmx() -> Result<Self> {
-        Fork::new(::DEFAULT_PTMX)
+        Fork::new(crate::DEFAULT_PTMX)
     }
 
     /// Waits until it's terminated.

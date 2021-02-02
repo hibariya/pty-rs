@@ -2,7 +2,7 @@ mod err;
 
 use libc;
 
-use descriptor::Descriptor;
+use crate::descriptor::Descriptor;
 
 pub use self::err::{MasterError, Result};
 use std::io;

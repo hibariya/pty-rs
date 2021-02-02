@@ -82,9 +82,6 @@
     unused_qualifications
 )]
 
-extern crate errno;
-extern crate libc;
-
 mod descriptor;
 pub mod fork;
 pub mod prelude;

@@ -1,6 +1,6 @@
 mod err;
 
-use descriptor::Descriptor;
+use crate::descriptor::Descriptor;
 use libc;
 
 pub use self::err::{Result, SlaveError};

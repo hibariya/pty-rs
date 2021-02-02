@@ -1,4 +1,4 @@
-use descriptor::DescriptorError;
+use crate::descriptor::DescriptorError;
 use std::error::Error;
 use std::fmt;
 
@@ -34,7 +34,7 @@ pub enum ForkError {
 impl fmt::Display for ForkError {
     /// The function `fmt` formats the value using the given formatter.
 
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", ::errno::errno())
     }
 }

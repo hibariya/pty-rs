@@ -13,7 +13,7 @@ pub enum DescriptorError {
 
 impl fmt::Display for DescriptorError {
     /// The function `fmt` formats the value using the given formatter.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", ::errno::errno())
     }
 }

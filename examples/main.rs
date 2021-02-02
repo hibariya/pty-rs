@@ -1,7 +1,3 @@
-extern crate errno;
-extern crate libc;
-extern crate pty;
-
 use pty::fork::*;
 use std::io::Read;
 use std::process::Command;
