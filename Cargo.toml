@@ -8,20 +8,6 @@ license = "MIT"
 description = "Fork with new pseudo-terminal (PTY)"
 keywords = ["pty", "tty", "pseudo", "terminal", "fork"]
 
-[features]
-default       = []
-lints         = ["clippy", "nightly"]
-nightly       = [] # for building with nightly and unstable features
-unstable      = [] # for building with unstable features on stable Rust
-debug         = [] # for building with debug messages
-travis        = ["lints", "nightly"] # for building with travis-cargo
-
-[dependencies.errno]
-version       = "0.1"
-
-[dependencies.libc]
-version       = ">= 0.2.18"
-
-[dependencies.clippy]
-version       = "0.0"
-optional      = true
+[dependencies]
+errno = "0.1"
+libc = "0.2.18"
