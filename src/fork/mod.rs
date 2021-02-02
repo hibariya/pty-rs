@@ -1,12 +1,12 @@
-mod pty;
 mod err;
+mod pty;
 
-use ::descriptor::Descriptor;
+use descriptor::Descriptor;
 
-use ::libc;
 pub use self::err::{ForkError, Result};
 pub use self::pty::{Master, MasterError};
 pub use self::pty::{Slave, SlaveError};
+use libc;
 use std::ffi::CString;
 
 #[derive(Debug)]
@@ -29,12 +29,10 @@ impl Fork {
                 } else {
                     match libc::fork() {
                         -1 => Err(ForkError::Failure),
-                        0 => {
-                            match master.ptsname() {
-                                Err(cause) => Err(ForkError::BadMaster(cause)),
-                                Ok(name) => Fork::from_pts(name), 
-                            }
-                        }
+                        0 => match master.ptsname() {
+                            Err(cause) => Err(ForkError::BadMaster(cause)),
+                            Ok(name) => Fork::from_pts(name),
+                        },
                         pid => Ok(Fork::Parent(pid, master)),
                     }
                 }
@@ -53,11 +51,11 @@ impl Fork {
                 match Slave::new(ptsname) {
                     Err(cause) => Err(ForkError::BadSlave(cause)),
                     Ok(slave) => {
-                        if let Some(cause) = slave.dup2(libc::STDIN_FILENO)
+                        if let Some(cause) = slave.dup2(libc::STDIN_FILENO).err().or(slave
+                            .dup2(libc::STDOUT_FILENO)
                             .err()
-                            .or(slave.dup2(libc::STDOUT_FILENO)
-                                .err()
-                                .or(slave.dup2(libc::STDERR_FILENO).err())) {
+                            .or(slave.dup2(libc::STDERR_FILENO).err()))
+                        {
                             Err(ForkError::BadSlave(cause))
                         } else {
                             Ok(Fork::Child(slave))
@@ -78,17 +76,15 @@ impl Fork {
     pub fn wait(&self) -> Result<libc::pid_t> {
         match *self {
             Fork::Child(_) => Err(ForkError::IsChild),
-            Fork::Parent(pid, _) => {
-                loop {
-                    unsafe {
-                        match libc::waitpid(pid, &mut 0, 0) {
-                            0 => continue,
-                            -1 => return Err(ForkError::WaitpidFail),
-                            _ => return Ok(pid),
-                        }
+            Fork::Parent(pid, _) => loop {
+                unsafe {
+                    match libc::waitpid(pid, &mut 0, 0) {
+                        0 => continue,
+                        -1 => return Err(ForkError::WaitpidFail),
+                        _ => return Ok(pid),
                     }
                 }
-            }
+            },
         }
     }
 

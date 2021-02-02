@@ -1,4 +1,4 @@
-use ::descriptor::DescriptorError;
+use descriptor::DescriptorError;
 use std::error::Error;
 use std::fmt;
 

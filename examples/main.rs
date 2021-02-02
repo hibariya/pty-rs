@@ -1,10 +1,10 @@
-extern crate pty;
-extern crate libc;
 extern crate errno;
+extern crate libc;
+extern crate pty;
 
 use pty::fork::*;
 use std::io::Read;
-use std::process::{Command};
+use std::process::Command;
 
 fn main() {
     let fork = Fork::from_ptmx().unwrap();

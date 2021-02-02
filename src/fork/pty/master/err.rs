@@ -1,4 +1,4 @@
-use ::descriptor::DescriptorError;
+use descriptor::DescriptorError;
 use std::error::Error;
 use std::fmt;
 
@@ -32,7 +32,6 @@ impl Error for MasterError {
             MasterError::GrantptError => "the `grantpt` has a error, errnois set appropriately.",
             MasterError::UnlockptError => "the `grantpt` has a error, errnois set appropriately.",
             MasterError::PtsnameError => "the `ptsname` has a error",
-
         }
     }
 

@@ -1,4 +1,4 @@
-use ::descriptor::DescriptorError;
+use descriptor::DescriptorError;
 use std::error::Error;
 use std::fmt;
 
@@ -58,7 +58,6 @@ impl Error for ForkError {
             ForkError::BadSlave(_) => "the slave as occured an error",
             ForkError::BadDescriptorMaster(_) => "the master's descriptor as occured an error",
             ForkError::BadDescriptorSlave(_) => "the slave's descriptor as occured an error",
-
         }
     }
 

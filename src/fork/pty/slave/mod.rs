@@ -1,9 +1,9 @@
 mod err;
 
-use ::descriptor::Descriptor;
-use ::libc;
+use descriptor::Descriptor;
+use libc;
 
-pub use self::err::{SlaveError, Result};
+pub use self::err::{Result, SlaveError};
 use std::os::unix::io::{AsRawFd, RawFd};
 
 #[derive(Debug)]
