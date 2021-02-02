@@ -1,13 +1,12 @@
-extern crate pty;
-extern crate libc;
+use pty;
 
 use self::pty::prelude::*;
 
 use std::io::prelude::*;
-use std::string::String;
 use std::process::Command;
+use std::string::String;
 
-fn read_line(master:&mut Master) -> String {
+fn read_line(master: &mut Master) -> String {
     let mut buf = [0];
     let mut res = String::new();
     while buf[0] as char != '\n' {

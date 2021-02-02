@@ -1,4 +1,4 @@
-use ::descriptor::DescriptorError;
+use crate::descriptor::DescriptorError;
 use std::error::Error;
 use std::fmt;
 
@@ -18,7 +18,7 @@ pub enum MasterError {
 impl fmt::Display for MasterError {
     /// The function `fmt` formats the value using the given formatter.
 
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", ::errno::errno())
     }
 }
@@ -32,13 +32,12 @@ impl Error for MasterError {
             MasterError::GrantptError => "the `grantpt` has a error, errnois set appropriately.",
             MasterError::UnlockptError => "the `grantpt` has a error, errnois set appropriately.",
             MasterError::PtsnameError => "the `ptsname` has a error",
-
         }
     }
 
     /// The function `cause` returns the lower-level cause of this error, if any.
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             MasterError::BadDescriptor(ref err) => Some(err),
             _ => None,

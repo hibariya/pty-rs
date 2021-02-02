@@ -1,6 +1,4 @@
-extern crate pty;
-extern crate libc;
-extern crate errno;
+use pty;
 
 use self::pty::prelude::*;
 
@@ -15,7 +13,9 @@ fn it_fork_with_new_pty() {
     if let Some(mut master) = fork.is_parent().ok() {
         let mut string = String::new();
 
-        master.read_to_string(&mut string).unwrap_or_else(|e| panic!(e));
+        master
+            .read_to_string(&mut string)
+            .unwrap_or_else(|e| panic!(e));
 
         let output = Command::new("tty")
             .stdin(Stdio::inherit())

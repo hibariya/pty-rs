@@ -1,5 +1,4 @@
-extern crate pty;
-extern crate libc;
+use pty;
 
 use self::pty::prelude::*;
 
@@ -12,7 +11,9 @@ fn main() {
     if let Some(mut master) = fork.is_parent().ok() {
         let mut string = String::new();
 
-        master.read_to_string(&mut string).unwrap_or_else(|e| panic!(e));
+        master
+            .read_to_string(&mut string)
+            .unwrap_or_else(|e| panic!(e));
 
         let output = Command::new("tty")
             .stdin(Stdio::inherit())
@@ -24,7 +25,13 @@ fn main() {
         let parent_tty = output_str.trim();
         let child_tty = string.trim();
 
-        println!("child_tty(\"{}\")[{}] != \"{}\" => {}", child_tty, child_tty.len(), "", child_tty != "");
+        println!(
+            "child_tty(\"{}\")[{}] != \"{}\" => {}",
+            child_tty,
+            child_tty.len(),
+            "",
+            child_tty != ""
+        );
         assert!(child_tty != "");
         assert!(child_tty != parent_tty);
 

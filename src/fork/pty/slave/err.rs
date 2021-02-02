@@ -1,4 +1,4 @@
-use ::descriptor::DescriptorError;
+use crate::descriptor::DescriptorError;
 use std::error::Error;
 use std::fmt;
 
@@ -16,7 +16,7 @@ pub enum SlaveError {
 impl fmt::Display for SlaveError {
     /// The function `fmt` formats the value using the given formatter.
 
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", ::errno::errno())
     }
 }
@@ -33,7 +33,7 @@ impl Error for SlaveError {
 
     /// The function `cause` returns the lower-level cause of this error, if any.
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             SlaveError::BadDescriptor(ref err) => Some(err),
             _ => None,

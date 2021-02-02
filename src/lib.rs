@@ -71,11 +71,6 @@
 //! }
 //! ```
 
-#![crate_type = "lib"]
-
-#![cfg_attr(feature = "nightly", feature(plugin))]
-#![cfg_attr(feature = "lints", plugin(clippy))]
-#![cfg_attr(feature = "lints", deny(warnings))]
 #![deny(
     missing_debug_implementations,
     missing_copy_implementations,
@@ -84,14 +79,11 @@
     unstable_features,
     unused_import_braces,
     unused_features,
-    unused_qualifications,
+    unused_qualifications
 )]
-
-extern crate libc;
-extern crate errno;
 
 mod descriptor;
 pub mod fork;
 pub mod prelude;
 
-const DEFAULT_PTMX: &'static str = "/dev/ptmx";
+const DEFAULT_PTMX: &str = "/dev/ptmx";

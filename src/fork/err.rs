@@ -1,4 +1,4 @@
-use ::descriptor::DescriptorError;
+use crate::descriptor::DescriptorError;
 use std::error::Error;
 use std::fmt;
 
@@ -34,7 +34,7 @@ pub enum ForkError {
 impl fmt::Display for ForkError {
     /// The function `fmt` formats the value using the given formatter.
 
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", ::errno::errno())
     }
 }
@@ -58,13 +58,12 @@ impl Error for ForkError {
             ForkError::BadSlave(_) => "the slave as occured an error",
             ForkError::BadDescriptorMaster(_) => "the master's descriptor as occured an error",
             ForkError::BadDescriptorSlave(_) => "the slave's descriptor as occured an error",
-
         }
     }
 
     /// The function `cause` returns the lower-level cause of this error, if any.
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             ForkError::BadMaster(ref err) => Some(err),
             ForkError::BadSlave(ref err) => Some(err),
