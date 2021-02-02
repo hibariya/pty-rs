@@ -19,12 +19,12 @@ pub enum Fork {
 
 impl Fork {
     /// The constructor function `new` forks the program
-    /// and returns the current pid.
+    /// and returns the current pid
     pub fn new(path: &'static str) -> Result<Self> {
         match Master::new(CString::new(path).ok().unwrap_or_default().as_ptr()) {
             Err(cause) => Err(ForkError::BadMaster(cause)),
             Ok(master) => unsafe {
-                if let Some(cause) = master.grantpt().err().or(master.unlockpt().err()) {
+                if let Some(cause) = master.grantpt().err().or_else(|| master.unlockpt().err()) {
                     Err(ForkError::BadMaster(cause))
                 } else {
                     match libc::fork() {
@@ -51,11 +51,12 @@ impl Fork {
                 match Slave::new(ptsname) {
                     Err(cause) => Err(ForkError::BadSlave(cause)),
                     Ok(slave) => {
-                        if let Some(cause) = slave.dup2(libc::STDIN_FILENO).err().or(slave
-                            .dup2(libc::STDOUT_FILENO)
-                            .err()
-                            .or(slave.dup2(libc::STDERR_FILENO).err()))
-                        {
+                        if let Some(cause) = slave.dup2(libc::STDIN_FILENO).err().or_else(|| {
+                            slave
+                                .dup2(libc::STDOUT_FILENO)
+                                .err()
+                                .or_else(|| slave.dup2(libc::STDERR_FILENO).err())
+                        }) {
                             Err(ForkError::BadSlave(cause))
                         } else {
                             Ok(Fork::Child(slave))
@@ -93,7 +94,7 @@ impl Fork {
     pub fn is_parent(&self) -> Result<Master> {
         match *self {
             Fork::Child(_) => Err(ForkError::IsChild),
-            Fork::Parent(_, ref master) => Ok(master.clone()),
+            Fork::Parent(_, ref master) => Ok(*master),
         }
     }
 
@@ -109,9 +110,8 @@ impl Fork {
 
 impl Drop for Fork {
     fn drop(&mut self) {
-        match *self {
-            Fork::Parent(_, ref master) => Descriptor::drop(master),
-            _ => {}
+        if let Fork::Parent(_, ref master) = *self {
+            Descriptor::drop(master)
         }
     }
 }

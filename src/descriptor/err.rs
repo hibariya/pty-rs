@@ -1,10 +1,6 @@
 use std::error::Error;
 use std::fmt;
 
-/// The alias `Result` learns `DescriptorError` possibility.
-
-pub type Result<T> = ::std::result::Result<T, DescriptorError>;
-
 /// The enum `DescriptorError` defines the possible errors
 /// from constructor Descriptor.
 #[derive(Clone, Copy, Debug)]
@@ -33,7 +29,7 @@ impl Error for DescriptorError {
 
     /// The function `cause` returns the lower-level cause of this error, if any.
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         None
     }
 }

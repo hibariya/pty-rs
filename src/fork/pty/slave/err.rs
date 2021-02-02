@@ -33,7 +33,7 @@ impl Error for SlaveError {
 
     /// The function `cause` returns the lower-level cause of this error, if any.
 
-    fn cause(&self) -> Option<&Error> {
+    fn cause(&self) -> Option<&dyn Error> {
         match *self {
             SlaveError::BadDescriptor(ref err) => Some(err),
             _ => None,
